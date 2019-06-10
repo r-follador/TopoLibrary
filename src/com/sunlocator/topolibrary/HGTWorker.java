@@ -510,8 +510,8 @@ public class HGTWorker {
                     gltfFile.addGLTFMesh(data, (slice_x_width + 8)/4, (slice_y_width + 8)/4, cellWidth_LatMeters*4f, cellWidth_LonMeters*4f, false, false, offset_x, offset_y);
 
                 } else {
-                    short[][] data = load_3DEM(topLeftLatLon, slice_x_width+4, slice_y_width+4, x*slice_x_width-2, y*slice_y_width-2, hgtFileLoader);
-                    gltfFile.addGLTFMesh(data, slice_x_width + 4, slice_y_width + 4, cellWidth_LatMeters, cellWidth_LonMeters, false, true, offset_x, offset_y);
+                    short[][] data = load_3DEM(topLeftLatLon, slice_x_width, slice_y_width, x*slice_x_width, y*slice_y_width, hgtFileLoader);
+                    gltfFile.addGLTFMesh(data, slice_x_width, slice_y_width, cellWidth_LatMeters, cellWidth_LonMeters, true, true, offset_x, offset_y);
                 }
             }
         }
