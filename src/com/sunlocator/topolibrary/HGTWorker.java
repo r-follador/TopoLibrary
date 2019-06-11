@@ -473,22 +473,74 @@ public class HGTWorker {
         return  neighborHGT;
     }
 
-    public static GLTFDatafile getLODGLTF(LatLonBoundingBox boundingBox, HGTFileLoader hgtFileLoader) throws IOException {
+    public static LatLonBoundingBox convertSuggestedBBox4LOD(LatLonBoundingBox suggestedBoundingBox) {
+        int lonCellNumber = (int)(suggestedBoundingBox.widthLonDegree * (float) HGTDatafile.DEM3_cells_per_row);
+        int latCellNumber = (int)(suggestedBoundingBox.widthLatDegree * (float) HGTDatafile.DEM3_cells_per_row);
 
-        int lonCellNumber = (int)(boundingBox.widthLonDegree * (float) HGTDatafile.DEM3_cells_per_row);
-        int latCellNumber = (int)(boundingBox.widthLatDegree * (float) HGTDatafile.DEM3_cells_per_row);
-
-        float cellWidth_LatMeters = (float)(boundingBox.widthLatMeters / (double)latCellNumber);
-        float cellWidth_LonMeters = (float)(boundingBox.widthLonMeters / (double)lonCellNumber);
-
-        while (latCellNumber % 6 != 3)
+        while (latCellNumber % 4 != 1)
             latCellNumber++;
 
-        while (lonCellNumber % 6 != 3)
+        while (lonCellNumber % 4 != 1)
             lonCellNumber++;
+
+        double N_bound = suggestedBoundingBox.center.getLatitude()+((latCellNumber/2)*HGTDatafile.DEM3_cellWidth_LatDegree);
+        double S_bound = N_bound-(latCellNumber*HGTDatafile.DEM3_cellWidth_LatDegree);
+        double W_bound = suggestedBoundingBox.center.getLongitude()-((lonCellNumber/2)*HGTDatafile.DEM3_cellWidth_LonDegree);
+        double E_bound = W_bound+(lonCellNumber*HGTDatafile.DEM3_cellWidth_LonDegree);
+
+        return new LatLonBoundingBox(N_bound, S_bound, W_bound, E_bound);
+    }
+
+    public static GLTFDatafile getLODGLTF(LatLonBoundingBox suggestedBoundingBox, HGTFileLoader hgtFileLoader) throws IOException {
+
+        LatLonBoundingBox boundingBox = convertSuggestedBBox4LOD(suggestedBoundingBox);
+
+
+        /**System.out.println("--suggested---");
+        System.out.println(suggestedBoundingBox.toString());
+        System.out.println("--calculated---");
+        System.out.println(boundingBox.toString());**/
+
+        int lonCellNumber = (int)Math.round(boundingBox.widthLonDegree/HGTDatafile.DEM3_cellWidth_LonDegree);
+        int latCellNumber = (int)Math.round(boundingBox.widthLatDegree/HGTDatafile.DEM3_cellWidth_LatDegree);
+
+        if (lonCellNumber%4 != 1)
+            System.err.println("Error: loncelllnumber "+lonCellNumber);
+        if (latCellNumber%4 != 1)
+            System.err.println("Error: latcelllnumber "+latCellNumber);
+
+        double cellWidth_LatMeters = boundingBox.widthLatMeters/(double)latCellNumber;
+        double cellWidth_LonMeters = boundingBox.widthLonMeters/(double)lonCellNumber;
+
 
         LatLon topLeftLatLon = boundingBox.getTopLeft();
 
+        GLTFDatafile gltfFile = new GLTFDatafile();
+
+
+        for (int x=-1; x<=1; x++) {
+            for (int y=-1; y<=1; y++) {
+                if (!(x==0 && y == 0)) {
+                    short[][] data = load_3DEM(topLeftLatLon, lonCellNumber+6, latCellNumber+6, (x*(lonCellNumber-1))-3, (y*(latCellNumber-1))-3, hgtFileLoader);
+                    data = downsampleHGTDatafile(new HGTDatafile(suggestedBoundingBox, data)).data;
+                    data = downsampleHGTDatafile(new HGTDatafile(suggestedBoundingBox, data)).data;
+
+                    float offset_x = (float)(((lonCellNumber/4)*(cellWidth_LonMeters*4))*x);
+                    if ((lonCellNumber/4)%2!=0) //uneven; fuck me if I know why
+                        offset_x+=2f*cellWidth_LonMeters;
+                    float offset_y = (float)(((latCellNumber/4)*(cellWidth_LatMeters*4))*y*-1f);
+                    if ((latCellNumber/4)%2!=0) //uneven; fuck me if I know why
+                        offset_y-=2f*cellWidth_LatMeters;
+                    gltfFile.addGLTFMesh(data, (lonCellNumber+6)/4, (latCellNumber+6)/4, cellWidth_LatMeters*4f, cellWidth_LonMeters*4f, false, false, offset_x, offset_y);
+                } else {
+                    short[][] data = load_3DEM(topLeftLatLon, lonCellNumber, latCellNumber, 0,0, hgtFileLoader);
+                    gltfFile.addGLTFMesh(data, lonCellNumber, latCellNumber, cellWidth_LatMeters, cellWidth_LonMeters, true, true, 0, 0);
+                }
+            }
+        }
+
+
+        /**
 
 
         int slice_x_width = lonCellNumber/3;
@@ -505,8 +557,8 @@ public class HGTWorker {
 
                 if (!(x==1 && y == 1)) {
                     short[][] data = load_3DEM(topLeftLatLon, slice_x_width+8, slice_y_width+8, x*slice_x_width-4, y*slice_y_width-4, hgtFileLoader);
-                    data = downsampleHGTDatafile(new HGTDatafile(boundingBox, data)).data;
-                    data = downsampleHGTDatafile(new HGTDatafile(boundingBox, data)).data;
+                    data = downsampleHGTDatafile(new HGTDatafile(suggestedBoundingBox, data)).data;
+                    data = downsampleHGTDatafile(new HGTDatafile(suggestedBoundingBox, data)).data;
                     gltfFile.addGLTFMesh(data, (slice_x_width + 8)/4, (slice_y_width + 8)/4, cellWidth_LatMeters*4f, cellWidth_LonMeters*4f, false, false, offset_x, offset_y);
 
                 } else {
@@ -515,7 +567,7 @@ public class HGTWorker {
                 }
             }
         }
-
+**/
 
         return gltfFile;
     }

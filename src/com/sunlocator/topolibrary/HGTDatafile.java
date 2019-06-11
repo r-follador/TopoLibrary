@@ -21,9 +21,29 @@ public class HGTDatafile {
     public static int DEM3_cells_per_row = 1201;
 
     /**
+     * Size in degree of one row/column in a 3DEM datafile
+     */
+    public static double  DEM3_cellWidth_LatDegree = 1.0d/DEM3_cells_per_row;
+
+    /**
+     * Size in degree of one row/column in a 3DEM datafile
+     */
+    public static double DEM3_cellWidth_LonDegree = DEM3_cellWidth_LatDegree;
+
+    /**
      * Number of cells per row/column in a 1DEM datafile (per 1°)
      */
     public static int DEM1_cells_per_row = 3601;
+
+    /**
+     * Size in degree of one row/column in a 1DEM datafile
+     */
+    public static double  DEM1_cellWidth_LatDegree = 1.0d/DEM1_cells_per_row;
+
+    /**
+     * Size in degree of one row/column in a 31DEM datafile
+     */
+    public static double DEM1_cellWidth_LonDegree = DEM1_cellWidth_LatDegree;
     
     /**
      * width of a cell in degrees along latitude (N-S)
