@@ -24,7 +24,7 @@ public class HGTmain {
     public static void main(String[] args) {
         //LatLon latlon = new LatLon(46.86365, 9.59043);
         LatLon latlon = new LatLon(	45.97664, 7.65867);
-        LatLonBoundingBox boundingBox = new LatLonBoundingBox(latlon, 1000);
+        LatLonBoundingBox boundingBox = new LatLonBoundingBox(latlon, 10000);
        
        
        try {

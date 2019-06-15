@@ -532,9 +532,11 @@ public class HGTWorker {
                     if ((latCellNumber/4)%2!=0) //uneven; fuck me if I know why
                         offset_y-=2f*cellWidth_LatMeters;
                     gltfFile.addGLTFMesh(data, (lonCellNumber+6)/4, (latCellNumber+6)/4, cellWidth_LatMeters*4f, cellWidth_LonMeters*4f, false, false, offset_x, offset_y);
+
                 } else {
                     short[][] data = load_3DEM(topLeftLatLon, lonCellNumber, latCellNumber, 0,0, hgtFileLoader);
                     gltfFile.addGLTFMesh(data, lonCellNumber, latCellNumber, cellWidth_LatMeters, cellWidth_LonMeters, true, true, 0, 0);
+
                 }
             }
         }
