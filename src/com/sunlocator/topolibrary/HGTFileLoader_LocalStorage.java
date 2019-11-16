@@ -33,6 +33,8 @@ public class HGTFileLoader_LocalStorage implements HGTFileLoader {
         while ((readBytes = is.read(b)) != -1) {
             for (int i = 0; i < readBytes; i += 2) {
                 short height = (short) ((b[i] & 0xFF) * 256 + (b[i + 1] & 0xFF));
+                if (height < -500)  //account for some holes, there's no land lower than -4xx (dead sea)
+                    height = -500;
                 //System.out.println((b[i]& 0xFF)+"\t"+(b[i+1]& 0xFF)+"\t"+height);
                 //heightmap[x][y] aka heightmap[lon][lat]
                 heightmap[cellCount % cellsPerRow][cellCount / cellsPerRow] = height;
