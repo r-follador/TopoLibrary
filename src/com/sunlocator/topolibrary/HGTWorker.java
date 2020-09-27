@@ -117,7 +117,7 @@ public class HGTWorker {
      * -1*1 degree per file
      * -Lower left (SW corner) is filename, ex. N53W003 (North 53, West 3)
      *
-     * @param position
+     * @param position that's within the requested HGT file
      * @return
      * @throws FileNotFoundException
      * @throws IOException
@@ -166,12 +166,16 @@ public class HGTWorker {
         }
     }
 
-    public static short[][] load_3DEM(LatLon topleft, int cells_x_lon, int cells_y_lat, HGTFileLoader hgtFileLoader) throws  IOException {
-        return load_3DEM(topleft, cells_x_lon, cells_y_lat, 0, 0, hgtFileLoader);
+    public static short[][] load_3DEM(LatLon topleft, int cells_x_lon, int cells_y_lat, HGTFileLoader hgtFileLoader_3DEM) throws  IOException {
+        return load_3DEM(topleft, cells_x_lon, cells_y_lat, 0, 0, hgtFileLoader_3DEM);
+    }
+
+    public static short[][] load_1DEM(LatLon topleft, int cells_x_lon, int cells_y_lat, HGTFileLoader hgtFileLoader_1DEM) throws  IOException {
+        return load_1DEM(topleft, cells_x_lon, cells_y_lat, 0, 0, hgtFileLoader_1DEM);
     }
 
 
-    public static short[][] load_3DEM(LatLon topleft, int cells_x_lon, int cells_y_lat, int xcell_offset, int ycell_offset, HGTFileLoader hgtFileLoader) throws  IOException {
+    public static short[][] load_3DEM(LatLon topleft, int cells_x_lon, int cells_y_lat, int xcell_offset, int ycell_offset, HGTFileLoader hgtFileLoader_3DEM) throws  IOException {
         short[][] data = new short[cells_x_lon][cells_y_lat];
 
         final double cellWidth = 1d/(double) HGTDatafile.DEM3_cells_per_row;
@@ -212,11 +216,11 @@ public class HGTWorker {
 
                 int len_y = Math.min(HGTDatafile.DEM3_cells_per_row - start_y_topleft, missing_len_y);
 
-                HGTDatafile hgtFile = loadHGTFile_3DEM(new LatLon(lat-0.1d,lon+0.1d), hgtFileLoader);
+                HGTDatafile hgtFile = loadHGTFile_3DEM(new LatLon(lat-0.1d,lon+0.1d), hgtFileLoader_3DEM);
 
                 copyDataArray(hgtFile.data, start_x_topleft, start_y_topleft, len_x, len_y, data, cell_count_x, cell_count_y);
 
-                start_y_topleft = 1; //the datapoints at the borders might be duplicated in the files ?
+                start_y_topleft = 1; //the datapoints at the borders might be duplicated in the files ? --> yes, according to https://wiki.openstreetmap.org/wiki/SRTM
                 missing_len_y -= len_y;
                 cell_count_y += len_y;
                 lat--;
@@ -230,14 +234,84 @@ public class HGTWorker {
         return data;
     }
 
+    public static short[][] load_1DEM(LatLon topleft, int cells_x_lon, int cells_y_lat, int xcell_offset, int ycell_offset, HGTFileLoader hgtFileLoader_1DEM) throws  IOException {
+        short[][] data = new short[cells_x_lon][cells_y_lat];
 
-    public static HGTDatafile loadFromBoundingBox_3DEM(LatLonBoundingBox bounds, HGTFileLoader hgtFileLoader) throws IOException {
+        final double cellWidth = 1d/(double) HGTDatafile.DEM1_cells_per_row;
+
+        int start_x_topleft = (int)((topleft.getLongitude()-Math.floor(topleft.getLongitude()))/cellWidth) + xcell_offset;
+        int lon = (int) Math.floor(topleft.getLongitude()); //left
+
+        if (start_x_topleft>= HGTDatafile.DEM1_cells_per_row) { //if the start is already on a new file
+            lon += (start_x_topleft/ HGTDatafile.DEM1_cells_per_row);
+            start_x_topleft %= HGTDatafile.DEM1_cells_per_row;
+        } else if (start_x_topleft < 0) {
+            lon += Math.floorDiv(start_x_topleft, HGTDatafile.DEM1_cells_per_row);
+            start_x_topleft = Math.floorMod(start_x_topleft, HGTDatafile.DEM1_cells_per_row);
+        }
+
+        int cell_count_x = 0;
+        int missing_len_x = cells_x_lon;
+
+        while (cell_count_x < cells_x_lon) {
+            int len_x = Math.min(HGTDatafile.DEM1_cells_per_row - start_x_topleft, missing_len_x);
+
+            int start_y_topleft = (int)((Math.ceil(topleft.getLatitude())-topleft.getLatitude())/cellWidth) + ycell_offset;
+
+            int cell_count_y = 0;
+            int lat = (int) Math.ceil(topleft.getLatitude()); //top
+
+            if (start_y_topleft>= HGTDatafile.DEM1_cells_per_row) { //if the start is already in the next file
+                lat -= (start_y_topleft/ HGTDatafile.DEM1_cells_per_row);
+                start_y_topleft %= HGTDatafile.DEM1_cells_per_row;
+            } else if (start_y_topleft < 0) {
+                lat -= Math.floorDiv(start_y_topleft, HGTDatafile.DEM1_cells_per_row);
+                start_y_topleft = Math.floorMod(start_y_topleft, HGTDatafile.DEM1_cells_per_row);
+            }
+
+            int missing_len_y = cells_y_lat;
+
+            while (cell_count_y < cells_y_lat) {
+
+                int len_y = Math.min(HGTDatafile.DEM1_cells_per_row - start_y_topleft, missing_len_y);
+
+                HGTDatafile hgtFile = loadHGTFile_1DEM(new LatLon(lat-0.1d,lon+0.1d), hgtFileLoader_1DEM);
+
+                copyDataArray(hgtFile.data, start_x_topleft, start_y_topleft, len_x, len_y, data, cell_count_x, cell_count_y);
+
+                start_y_topleft = 1; //the datapoints at the borders might be duplicated in the files --> yes, according to https://wiki.openstreetmap.org/wiki/SRTM
+                missing_len_y -= len_y;
+                cell_count_y += len_y;
+                lat--;
+            }
+            start_x_topleft = 1;
+            missing_len_x -= len_x;
+            cell_count_x += len_x;
+            lon++;
+
+        }
+        return data;
+    }
+
+    public static HGTDatafile loadFromBoundingBox_3DEM(LatLonBoundingBox bounds, HGTFileLoader hgtFileLoader_3DEM) throws IOException {
         int cells_x_lon = (int) (bounds.widthLonDegree *(double) HGTDatafile.DEM3_cells_per_row);
         int cells_y_lat = (int) (bounds.widthLatDegree *(double) HGTDatafile.DEM3_cells_per_row);
 
         LatLon topLeftLatLon = bounds.getTopLeft();
 
-        short[][] data = load_3DEM(topLeftLatLon, cells_x_lon, cells_y_lat, hgtFileLoader);
+        short[][] data = load_3DEM(topLeftLatLon, cells_x_lon, cells_y_lat, hgtFileLoader_3DEM);
+
+        return new HGTDatafile(bounds, data);
+    }
+
+    //TODO: this::::
+    public static HGTDatafile loadFromBoundingBox_1DEM(LatLonBoundingBox bounds, HGTFileLoader hgtFileLoader_1DEM) throws IOException {
+        int cells_x_lon = (int) (bounds.widthLonDegree *(double) HGTDatafile.DEM1_cells_per_row);
+        int cells_y_lat = (int) (bounds.widthLatDegree *(double) HGTDatafile.DEM1_cells_per_row);
+
+        LatLon topLeftLatLon = bounds.getTopLeft();
+
+        short[][] data = load_1DEM(topLeftLatLon, cells_x_lon, cells_y_lat, hgtFileLoader_1DEM);
 
         return new HGTDatafile(bounds, data);
     }
@@ -473,7 +547,12 @@ public class HGTWorker {
         return  neighborHGT;
     }
 
-    public static LatLonBoundingBox convertSuggestedBBox4LOD(LatLonBoundingBox suggestedBoundingBox) {
+    /**
+     * Make LatLonBoundingBox whose DEM3 arrays width and height will be divisible by 4 +1
+     * @param suggestedBoundingBox
+     * @return extended LatLonBoundingBox
+     */
+    public static LatLonBoundingBox convertSuggestedBBox4LOD_3DEM(LatLonBoundingBox suggestedBoundingBox) {
         int lonCellNumber = (int)(suggestedBoundingBox.widthLonDegree * (float) HGTDatafile.DEM3_cells_per_row);
         int latCellNumber = (int)(suggestedBoundingBox.widthLatDegree * (float) HGTDatafile.DEM3_cells_per_row);
 
@@ -491,9 +570,32 @@ public class HGTWorker {
         return new LatLonBoundingBox(N_bound, S_bound, W_bound, E_bound);
     }
 
-    public static GLTFDatafile getLODGLTF(LatLonBoundingBox suggestedBoundingBox, HGTFileLoader hgtFileLoader) throws IOException {
+    /**
+     * Make LatLonBoundingBox whose DEM1 arrays width and height will be divisible by 4 +1
+     * @param suggestedBoundingBox
+     * @return extended LatLonBoundingBox
+     */
+    public static LatLonBoundingBox convertSuggestedBBox4LOD_1DEM(LatLonBoundingBox suggestedBoundingBox) {
+        int lonCellNumber = (int)(suggestedBoundingBox.widthLonDegree * (float) HGTDatafile.DEM1_cells_per_row);
+        int latCellNumber = (int)(suggestedBoundingBox.widthLatDegree * (float) HGTDatafile.DEM1_cells_per_row);
 
-        LatLonBoundingBox boundingBox = convertSuggestedBBox4LOD(suggestedBoundingBox);
+        while (latCellNumber % 4 != 1)
+            latCellNumber++;
+
+        while (lonCellNumber % 4 != 1)
+            lonCellNumber++;
+
+        double N_bound = suggestedBoundingBox.center.getLatitude()+((latCellNumber/2)*HGTDatafile.DEM1_cellWidth_LatDegree);
+        double S_bound = N_bound-(latCellNumber*HGTDatafile.DEM1_cellWidth_LatDegree);
+        double W_bound = suggestedBoundingBox.center.getLongitude()-((lonCellNumber/2)*HGTDatafile.DEM1_cellWidth_LonDegree);
+        double E_bound = W_bound+(lonCellNumber*HGTDatafile.DEM1_cellWidth_LonDegree);
+
+        return new LatLonBoundingBox(N_bound, S_bound, W_bound, E_bound);
+    }
+
+    public static GLTFDatafile getLODGLTF_3DEM(LatLonBoundingBox suggestedBoundingBox, HGTFileLoader hgtFileLoader) throws IOException {
+
+        LatLonBoundingBox boundingBox = convertSuggestedBBox4LOD_3DEM(suggestedBoundingBox);
 
 
         /**System.out.println("--suggested---");

@@ -23,13 +23,13 @@ public class HGTmain {
      */
     public static void main(String[] args) {
         //LatLon latlon = new LatLon(46.86365, 9.59043);
-        LatLon latlon = new LatLon(	45.97664, 7.65867);
+        LatLon latlon = new LatLon(	51.1056, -115.3573);
         LatLonBoundingBox boundingBox = new LatLonBoundingBox(latlon, 10000);
        
        
        try {
-            String directory = "/home/rainer/Downloads/HGT/";
-            HGTFileLoader_LocalStorage hgtFileLoader = new HGTFileLoader_LocalStorage(directory);
+            //String directory = "/home/rainer/Software_Dev/HGT/";
+            //HGTFileLoader_LocalStorage hgtFileLoader = new HGTFileLoader_LocalStorage(directory);
 
            
            
@@ -41,25 +41,29 @@ public class HGTmain {
 
            //LOD
 
-            GLTFDatafile gltfFile = HGTWorker.getLODGLTF(boundingBox, hgtFileLoader);
+            //GLTFDatafile gltfFile = HGTWorker.getLODGLTF(boundingBox, hgtFileLoader);
 
 
-            PrintWriter out3 = new PrintWriter("/home/rainer/IdeaProjects/SunTopoStatic/terrain_LOD.gltf");
-            out3.print(gltfFile.getString());
-            out3.close();
+            //PrintWriter out3 = new PrintWriter("/home/rainer/Sofware_Dev/IdeaProjects/SunTopoStatic/terrain_LOD.gltf");
+            //out3.print(gltfFile.getString());
+            //out3.close();
 
-           //BufferedImage map = MapWorker.getMapPng(innerBoundingBox);
-           //MapWorker.resizeAndwriteImageToFile(1024, map, "/home/rainer/IdeaProjects/SunTopoStatic/terrain.map.png");
+           BufferedImage map_old = MapWorker.getMapPng(boundingBox);
+           //BufferedImage map = MapWorker.getMapRasterTiles(boundingBox);
+           //MapWorker.resizeAndwriteImageToFile(1024, map, "/home/rainer/Software_Dev/IdeaProjects/SunTopoStatic/terrain.map.png");
+           MapWorker.resizeAndwriteImageToFile(1024, map_old, "/home/rainer/Software_Dev/IdeaProjects/SunTopoStatic/terrain.map_old.png");
 
            //not LOD
+           /**
            HGTDatafile hgt = HGTWorker.loadFromBoundingBox_3DEM(boundingBox, hgtFileLoader);
            GLTFDatafile gltfFile_noLod = new GLTFDatafile();
            gltfFile_noLod.addGLTFMesh(hgt, true);
 
-           PrintWriter out = new PrintWriter("/home/rainer/IdeaProjects/SunTopoStatic/terrain_noLOD.gltf");
+           PrintWriter out = new PrintWriter("/home/rainer/Software_Dev/IdeaProjects/SunTopoStatic/terrain_noLOD.gltf");
            out.print(gltfFile_noLod.getString());
            out.close();
            out.close();
+            **/
 
        } catch (IOException e) {
            System.err.println(e);

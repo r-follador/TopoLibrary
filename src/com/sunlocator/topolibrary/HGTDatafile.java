@@ -6,7 +6,7 @@
 package com.sunlocator.topolibrary;
 
 /**
- *
+ * More info about HGT: https://wiki.openstreetmap.org/wiki/SRTM
  * @author rainer
  */
 public class HGTDatafile {
@@ -14,6 +14,10 @@ public class HGTDatafile {
     public LatLonBoundingBox bounds;
     public int cellsLat_Y; //
     public int cellsLon_X;
+
+    public String toString() {
+        return bounds.toString()+"\n"+"Number of Cells Lon(X)/Lat(Y): "+cellsLon_X+"/"+cellsLat_Y;
+    }
 
     /**
      * Number of cells per row/column in a 3DEM datafile (per 1°)
@@ -72,5 +76,9 @@ public class HGTDatafile {
         cellWidth_LonDegree = bounds.widthLonDegree/(double)cellsLon_X;
         cellWidth_LatMeters = bounds.widthLatMeters/(double)cellsLat_Y;
         cellWidth_LonMeters = bounds.widthLonMeters/(double)cellsLon_X;
+    }
+
+    public short[][] getData() {
+        return data;
     }
 }
