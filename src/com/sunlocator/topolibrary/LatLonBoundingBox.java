@@ -10,7 +10,14 @@ package com.sunlocator.topolibrary;
  * @author rainer
  */
 public class LatLonBoundingBox {
-    
+
+    /**
+     * Create new LatLonBoundingBox with defined bounds
+     * @param N_Bound
+     * @param S_Bound
+     * @param W_Bound
+     * @param E_Bound
+     */
     public LatLonBoundingBox(double N_Bound, double S_Bound, double W_Bound, double E_Bound) {
         this.N_Bound = N_Bound;
         this.S_Bound = S_Bound;
@@ -18,7 +25,12 @@ public class LatLonBoundingBox {
         this.E_Bound = E_Bound;
         setWidths();
     }
-    
+
+    /**
+     * Create square LatLonBoundingbox from a center and width
+     * @param center
+     * @param width in meters
+     */
     public LatLonBoundingBox(LatLon center, int width) {
         int dist = width/2;
         double lat_diff = HGTWorker.distance2degrees_latitude(dist);
@@ -100,8 +112,20 @@ public class LatLonBoundingBox {
     double widthLatMeters;
     double widthLonMeters;
 
+    /**
+     * North Western Point
+     * @return
+     */
     public LatLon getTopLeft() {
         return new LatLon(getN_Bound(), getW_Bound());
+    }
+
+    /**
+     * South Eastern Point
+     * @return
+     */
+    public LatLon getBottomRight() {
+        return new LatLon(getS_Bound(), getE_Bound());
     }
     
     public String toString() {

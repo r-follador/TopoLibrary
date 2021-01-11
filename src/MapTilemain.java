@@ -15,18 +15,18 @@ public class MapTilemain {
 
 
         LatLon latLon = new LatLon(46.8508,9.5320);
-        MapTile tile = new MapTile(10, latLon);
+        MapTile tile = new MapTile(12, latLon);
         System.out.println(tile.toString());
         LatLonBoundingBox bb = tile.getBoundingBox();
-        System.out.println("Boudning box: "+bb.toString());
 
+        System.out.println("Bounding box: "+bb.toString());
         MapTile.XY topleft = MapTile.TileXYtoPixelXY(tile);
-        System.out.println(String.format("NW pixel: %d, %d", topleft.x, topleft.y));
+        System.out.printf("NW pixel: %d, %d%n", topleft.x, topleft.y);
         LatLon topleftLL = MapTile.convertPixelXYtoLatLong(topleft, tile.zoom);
-        System.out.println(String.format("NW lat lon: %f, %f", topleftLL.getLatitude(), topleftLL.getLongitude()));
+        System.out.printf("NW lat lon: %f, %f%n", topleftLL.getLatitude(), topleftLL.getLongitude());
 
         MapTile.XY point = tile.getLocalPixelPositionofLatLon(latLon);
-        System.out.println(String.format("Local pixel position xy: %d, %d", point.x, point.y));
+        System.out.printf("Local pixel position xy: %d, %d%n", point.x, point.y);
 
 
         URL url = new URL(formatURL(tile));
@@ -46,7 +46,7 @@ public class MapTilemain {
     ////////////////////////////////////////
     private static void showImage(Image image) {
         JFrame frame = new JFrame();
-        frame.setSize(700, 700);
+        frame.setSize(1024, 1024);
         Container contentPane = frame.getContentPane();
         JLabel sentenceLabel= new JLabel(new ImageIcon(image));
         contentPane.add(sentenceLabel);
@@ -54,6 +54,6 @@ public class MapTilemain {
     }
 
     private static String formatURL(MapTile mapTile) {
-        return String.format("https://api.maptiler.com/maps/basic/%d/%d/%d.png?key=***REMOVED***", mapTile.zoom, mapTile.x, mapTile.y);
+        return String.format("https://api.maptiler.com/maps/basic/%d/%d/%d@2x.png?key=***REMOVED***", mapTile.zoom, mapTile.x, mapTile.y);
     }
 }

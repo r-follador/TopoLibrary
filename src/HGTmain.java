@@ -28,42 +28,12 @@ public class HGTmain {
        
        
        try {
-            //String directory = "/home/rainer/Software_Dev/HGT/";
-            //HGTFileLoader_LocalStorage hgtFileLoader = new HGTFileLoader_LocalStorage(directory);
-
-           
-           
-            /**String json = HGTWorker.getJSON(hgt,true);
-            PrintWriter out = new PrintWriter("/home/rainer/JavaProjects/SunLocatorTopo/web/terrain.json");
-            out.print(json);
-            out.close();**/
-
-
-           //LOD
-
-            //GLTFDatafile gltfFile = HGTWorker.getLODGLTF(boundingBox, hgtFileLoader);
-
-
-            //PrintWriter out3 = new PrintWriter("/home/rainer/Sofware_Dev/IdeaProjects/SunTopoStatic/terrain_LOD.gltf");
-            //out3.print(gltfFile.getString());
-            //out3.close();
 
            BufferedImage map_old = MapWorker.getMapPng(boundingBox);
            //BufferedImage map = MapWorker.getMapRasterTiles(boundingBox);
            //MapWorker.resizeAndwriteImageToFile(1024, map, "/home/rainer/Software_Dev/IdeaProjects/SunTopoStatic/terrain.map.png");
            MapWorker.resizeAndwriteImageToFile(1024, map_old, "/home/rainer/Software_Dev/IdeaProjects/SunTopoStatic/terrain.map_old.png");
 
-           //not LOD
-           /**
-           HGTDatafile hgt = HGTWorker.loadFromBoundingBox_3DEM(boundingBox, hgtFileLoader);
-           GLTFDatafile gltfFile_noLod = new GLTFDatafile();
-           gltfFile_noLod.addGLTFMesh(hgt, true);
-
-           PrintWriter out = new PrintWriter("/home/rainer/Software_Dev/IdeaProjects/SunTopoStatic/terrain_noLOD.gltf");
-           out.print(gltfFile_noLod.getString());
-           out.close();
-           out.close();
-            **/
 
        } catch (IOException e) {
            System.err.println(e);

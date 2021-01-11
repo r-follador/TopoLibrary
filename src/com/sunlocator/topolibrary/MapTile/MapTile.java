@@ -12,7 +12,6 @@ public class MapTile {
     public int y;
 
     /**
-     * package com.company;
      * MapTile with defined zoom level and x and y coordinates of tile
      *
      * @param zoom
@@ -70,7 +69,7 @@ public class MapTile {
     }
 
     /**
-     * Get the 4 tiles zoomed in once (zoom level lower)
+     * Get the 4 tiles zoomed in once (zoom level higher)
      *
      * @return
      */

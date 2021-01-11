@@ -33,7 +33,9 @@ public class GPXmain {
 
        try {
            System.out.println("Start loading");
+           long start = System.currentTimeMillis();
            Track track = GPXWorker.loadGPXTracks(gpsTrack).get(0);
+           System.out.println("Load time: "+(System.currentTimeMillis()-start)+" ms");
            System.out.println("Points: "+track.getSegments().get(0).getPoints().size());
            //BufferedImage map = GPXWorker.getMapPng(track);
            //MapWorker.resizeAndwriteImageToFile(1024, map, "/home/rainer/Software_Dev/IdeaProjects/SunTopoStatic/GPXtesting/gps-map.png");

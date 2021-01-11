@@ -180,6 +180,7 @@ public class GPXWorker {
     }
 
     public static void getHeight(Track track, HGTFileLoader hgtFileLoader_1DEM) throws IOException {
+        //TODO: cannot be used yet, only print out
         LatLonBoundingBox latLonBoundingBox = getTrueTrackBoundingBox(track);
         latLonBoundingBox = new LatLonBoundingBox(latLonBoundingBox.getN_Bound(), latLonBoundingBox.getS_Bound()-HGTDatafile.DEM1_cellWidth_LatDegree, latLonBoundingBox.getW_Bound(), latLonBoundingBox.getE_Bound()+HGTDatafile.DEM1_cellWidth_LonDegree);
         HGTDatafile hgtDatafile = HGTWorker.loadFromBoundingBox_1DEM(latLonBoundingBox, hgtFileLoader_1DEM);

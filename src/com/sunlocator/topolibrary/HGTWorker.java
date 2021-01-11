@@ -5,6 +5,10 @@
  */
 package com.sunlocator.topolibrary;
 
+import com.sunlocator.topolibrary.MapTile.MapTile;
+import com.sunlocator.topolibrary.MapTile.MapTileWorker;
+import jdk.jfr.Experimental;
+
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
@@ -33,8 +37,7 @@ public class HGTWorker {
      * @return
      */
     public static double lengthOfDegreeLatitude() { //NORD/SÜD
-        final double out = (RadiusOfEarth * Math.PI / 180.0d);
-        return out;
+        return (RadiusOfEarth * Math.PI / 180.0d);
     }
 
     /**
@@ -83,6 +86,7 @@ public class HGTWorker {
     }
 
     /**
+     * Load 3DEM file
      * 3DEM Rules:
      * -1201 cells per row (3sec per cell)
      * -1*1 degree per file
@@ -101,7 +105,7 @@ public class HGTWorker {
         int lat_floored = (int) Math.floor(position.Lat);
         int lon_floored = (int) Math.floor(position.Lon);
         LatLonBoundingBox bounds = new LatLonBoundingBox(lat_floored + 1, lat_floored, lon_floored, lon_floored + 1);
-        HGTDatafile out = new HGTDatafile(bounds, data);
+        HGTDatafile out = new HGTDatafile(bounds, data, HGTDatafile.HGT_Type.DEM3);
         out.cellWidth_LatDegree = 1d/(double)cellsPerRow;
         out.cellWidth_LonDegree = 1d/(double)cellsPerRow;
         out.cellWidth_LatMeters = HGTWorker.degrees2distance_latitude(out.cellWidth_LatDegree);
@@ -112,6 +116,7 @@ public class HGTWorker {
 
     
     /**
+     * Load 1DEM file
      * 1DEM Rules:
      * -3601 cells per row (1sec per cell)
      * -1*1 degree per file
@@ -130,7 +135,7 @@ public class HGTWorker {
         int lat_floored = (int) Math.floor(position.Lat);
         int lon_floored = (int) Math.floor(position.Lon);
         LatLonBoundingBox bounds = new LatLonBoundingBox(lat_floored + 1, lat_floored, lon_floored, lon_floored + 1);
-        HGTDatafile out = new HGTDatafile(bounds, data);
+        HGTDatafile out = new HGTDatafile(bounds, data, HGTDatafile.HGT_Type.DEM1);
         out.cellWidth_LatDegree = 1d/(double)cellsPerRow;
         out.cellWidth_LonDegree = 1d/(double)cellsPerRow;
         out.cellWidth_LatMeters = HGTWorker.degrees2distance_latitude(out.cellWidth_LatDegree);
@@ -138,6 +143,11 @@ public class HGTWorker {
         return out;
     }
 
+    /**
+     * Get the name of the DEM3 file containing the position
+     * @param position
+     * @return
+     */
     private static String getFileName_3DEM(LatLon position) {
         int lat_floored = (int) Math.floor(position.Lat);
         boolean isNorth = lat_floored >= 0;
@@ -146,13 +156,17 @@ public class HGTWorker {
 
         return (isNorth ? "N" : "S") + String.format("%02d", Math.abs(lat_floored)) + (isEast ? "E" : "W") + String.format("%03d", Math.abs(lon_floored));
     }
-    
+
+    /**
+     * Get the name of the DEM1 file containing the position
+     * @param position
+     * @return
+     */
     private static String getFileName_1DEM(LatLon position) {
         return getFileName_3DEM(position);
     }
 
     private static short[][] copyDataArray(short[][] data, int x_start, int y_start, int x_length, int y_length) {
-
         short[][] outArray = new short[x_length][y_length];
         for (int x = x_start; x < x_start + x_length; x++) {
             System.arraycopy(data[x], y_start, outArray[x - x_start], 0, y_length);
@@ -174,7 +188,17 @@ public class HGTWorker {
         return load_1DEM(topleft, cells_x_lon, cells_y_lat, 0, 0, hgtFileLoader_1DEM);
     }
 
-
+    /**
+     * Load data from HGT files (3DEM)
+     * @param topleft Northwestern most corner
+     * @param cells_x_lon number of longitudinal cells to read
+     * @param cells_y_lat number of latitudinal cells to read
+     * @param xcell_offset x offset (lon)
+     * @param ycell_offset y offset (lat)
+     * @param hgtFileLoader_3DEM
+     * @return array of shorts
+     * @throws IOException
+     */
     public static short[][] load_3DEM(LatLon topleft, int cells_x_lon, int cells_y_lat, int xcell_offset, int ycell_offset, HGTFileLoader hgtFileLoader_3DEM) throws  IOException {
         short[][] data = new short[cells_x_lon][cells_y_lat];
 
@@ -234,6 +258,17 @@ public class HGTWorker {
         return data;
     }
 
+    /**
+     * Load data from HGT files (1DEM)
+     * @param topleft Northwestern most corner
+     * @param cells_x_lon number of longitudinal cells to read
+     * @param cells_y_lat number of latitudinal cells to read
+     * @param xcell_offset x offset (lon)
+     * @param ycell_offset y offset (lat)
+     * @param hgtFileLoader_1DEM
+     * @return array of shorts
+     * @throws IOException
+     */
     public static short[][] load_1DEM(LatLon topleft, int cells_x_lon, int cells_y_lat, int xcell_offset, int ycell_offset, HGTFileLoader hgtFileLoader_1DEM) throws  IOException {
         short[][] data = new short[cells_x_lon][cells_y_lat];
 
@@ -301,11 +336,12 @@ public class HGTWorker {
 
         short[][] data = load_3DEM(topLeftLatLon, cells_x_lon, cells_y_lat, hgtFileLoader_3DEM);
 
-        return new HGTDatafile(bounds, data);
+        return new HGTDatafile(bounds, data, HGTDatafile.HGT_Type.DEM3);
     }
 
     //TODO: this::::
     public static HGTDatafile loadFromBoundingBox_1DEM(LatLonBoundingBox bounds, HGTFileLoader hgtFileLoader_1DEM) throws IOException {
+
         int cells_x_lon = (int) (bounds.widthLonDegree *(double) HGTDatafile.DEM1_cells_per_row);
         int cells_y_lat = (int) (bounds.widthLatDegree *(double) HGTDatafile.DEM1_cells_per_row);
 
@@ -313,7 +349,8 @@ public class HGTWorker {
 
         short[][] data = load_1DEM(topLeftLatLon, cells_x_lon, cells_y_lat, hgtFileLoader_1DEM);
 
-        return new HGTDatafile(bounds, data);
+        throw new UnsupportedOperationException(); //NOT done yet
+        //return new HGTDatafile(bounds, data, HGTDatafile.HGT_Type.DEM1);
     }
 
     @Deprecated
@@ -364,7 +401,7 @@ public class HGTWorker {
         }
 
         LatLonBoundingBox hgtfileBoundingbox = new LatLonBoundingBox(topLeftLatLon.Lat, topLeftLatLon.Lat - (cells_y_lat * topLeftHgtFile.cellWidth_LatDegree), topLeftLatLon.Lon, topLeftLatLon.Lon + (cells_x_lon * topLeftHgtFile.cellWidth_LonDegree));
-        return new HGTDatafile(hgtfileBoundingbox, data);
+        return new HGTDatafile(hgtfileBoundingbox, data, HGTDatafile.HGT_Type.DEM3);
 
     }
 
@@ -373,6 +410,13 @@ public class HGTWorker {
 
     }
 
+    /**
+     * Get a preview HGTDatafile containing only the Northwestern DEM elements
+     * @param input
+     * @param size_x size in longitudinal DEM elements
+     * @param size_y size in latitudinal DEM elements
+     * @return
+     */
     public static HGTDatafile getPreviewHGTDatafile(HGTDatafile input, int size_x, int size_y) {
         if (input.cellsLat_Y < size_y || input.cellsLon_X < size_x) {
             throw new ArrayIndexOutOfBoundsException("Input HGTDatafile is smaller than the requested size (" + input.cellsLon_X + "*" + input.cellsLat_Y + ")");
@@ -386,10 +430,16 @@ public class HGTWorker {
 
         LatLonBoundingBox bounds = new LatLonBoundingBox(N_bound, S_bound, W_bound, E_bound);
 
-        return new HGTDatafile(bounds, data);
+        return new HGTDatafile(bounds, data, input.hgt_type);
 
     }
 
+    /**
+     * Downsample the input HGTFile by taking the average of neighboring height values
+     * Returns a HGTDatafile with half the number of Lon-cells and half the number of Lat-cells (i.e. one quarter of the size of the original)
+     * @param input
+     * @return
+     */
     public static HGTDatafile downsampleHGTDatafile(HGTDatafile input) {
         int size_x = input.cellsLon_X;
         int size_y = input.cellsLat_Y;
@@ -425,13 +475,21 @@ public class HGTWorker {
             }
         }
         
-        return new HGTDatafile(input.bounds, data);
+        return new HGTDatafile(input.bounds, data, HGTDatafile.HGT_Type.hgtOther);
 
     }
 
+    @Deprecated
+    /**
+     * Deprecated
+     * Use getLODGLTF_3DEM()
+     * @param hgt
+     * @param enclosement
+     * @return
+     */
     public static String getJSON(HGTDatafile hgt, boolean enclosement) {
 
-        StringBuilder data = new StringBuilder("");
+        StringBuilder data = new StringBuilder();
 
         float top_y = (float) ((hgt.cellsLat_Y / 2)) * (float) hgt.cellWidth_LatMeters;
         float left_x = (float) ((hgt.cellsLon_X / 2)) * (float) hgt.cellWidth_LonMeters * -1;
@@ -457,7 +515,7 @@ public class HGTWorker {
 
             for (int x = 0; x < hgt.cellsLon_X; x++) {
                 float x_m = (float) (x - (hgt.cellsLon_X / 2)) * (float) hgt.cellWidth_LonMeters;
-                float height = (float) hgt.data[x][y];
+                float height = hgt.data[x][y];
                 data.append(x_m).append(",").append(y_m).append(",").append(height).append(",");
             }
             if (enclosement) {
@@ -537,14 +595,11 @@ public class HGTWorker {
             W_bound = hgtDatafile.bounds.getW_Bound() - hgtDatafile.bounds.widthLonDegree;
         }
 
-        LatLonBoundingBox neighborBoundingBox = new LatLonBoundingBox(N_bound, S_bound, W_bound, E_bound);
-        return neighborBoundingBox;
-    };
+        return new LatLonBoundingBox(N_bound, S_bound, W_bound, E_bound);
+    }
 
     public static HGTDatafile loadNeighbor_3DEM(HGTDatafile hgtDatafile, byte neighbor, HGTFileLoader hgtFileLoader) throws IOException {
-        HGTDatafile neighborHGT = loadFromBoundingBox_3DEM(getNeighborBoundingBox(hgtDatafile, neighbor), hgtFileLoader);
-
-        return  neighborHGT;
+        return loadFromBoundingBox_3DEM(getNeighborBoundingBox(hgtDatafile, neighbor), hgtFileLoader);
     }
 
     /**
@@ -562,9 +617,9 @@ public class HGTWorker {
         while (lonCellNumber % 4 != 1)
             lonCellNumber++;
 
-        double N_bound = suggestedBoundingBox.center.getLatitude()+((latCellNumber/2)*HGTDatafile.DEM3_cellWidth_LatDegree);
+        double N_bound = suggestedBoundingBox.center.getLatitude()+((float)(latCellNumber/2)*HGTDatafile.DEM3_cellWidth_LatDegree);
         double S_bound = N_bound-(latCellNumber*HGTDatafile.DEM3_cellWidth_LatDegree);
-        double W_bound = suggestedBoundingBox.center.getLongitude()-((lonCellNumber/2)*HGTDatafile.DEM3_cellWidth_LonDegree);
+        double W_bound = suggestedBoundingBox.center.getLongitude()-((float)(lonCellNumber/2)*HGTDatafile.DEM3_cellWidth_LonDegree);
         double E_bound = W_bound+(lonCellNumber*HGTDatafile.DEM3_cellWidth_LonDegree);
 
         return new LatLonBoundingBox(N_bound, S_bound, W_bound, E_bound);
@@ -585,14 +640,24 @@ public class HGTWorker {
         while (lonCellNumber % 4 != 1)
             lonCellNumber++;
 
-        double N_bound = suggestedBoundingBox.center.getLatitude()+((latCellNumber/2)*HGTDatafile.DEM1_cellWidth_LatDegree);
+        double N_bound = suggestedBoundingBox.center.getLatitude()+((float)(latCellNumber/2)*HGTDatafile.DEM1_cellWidth_LatDegree);
         double S_bound = N_bound-(latCellNumber*HGTDatafile.DEM1_cellWidth_LatDegree);
-        double W_bound = suggestedBoundingBox.center.getLongitude()-((lonCellNumber/2)*HGTDatafile.DEM1_cellWidth_LonDegree);
+        double W_bound = suggestedBoundingBox.center.getLongitude()-((float)(lonCellNumber/2)*HGTDatafile.DEM1_cellWidth_LonDegree);
         double E_bound = W_bound+(lonCellNumber*HGTDatafile.DEM1_cellWidth_LonDegree);
 
         return new LatLonBoundingBox(N_bound, S_bound, W_bound, E_bound);
     }
 
+    /**
+     * Get a GLTFDatafile consisting of 3x3 terrain meshes. The one in the middle has the highest detail, the other eight are
+     * 4fold downsampled (lower level of detail).
+     * Use convertSuggestedBBox4LOD_3DEM() to get the actual bounding box.
+     * @param suggestedBoundingBox LatLonBoundingBox with the approximate bounds. Bounds will be adjusted to contain an area
+     *                             which is divisible by 4(+1) DEM fields to make downsampling and overlap possible.
+     * @param hgtFileLoader
+     * @return
+     * @throws IOException
+     */
     public static GLTFDatafile getLODGLTF_3DEM(LatLonBoundingBox suggestedBoundingBox, HGTFileLoader hgtFileLoader) throws IOException {
 
         LatLonBoundingBox boundingBox = convertSuggestedBBox4LOD_3DEM(suggestedBoundingBox);
@@ -619,13 +684,12 @@ public class HGTWorker {
 
         GLTFDatafile gltfFile = new GLTFDatafile();
 
-
         for (int x=-1; x<=1; x++) {
             for (int y=-1; y<=1; y++) {
                 if (!(x==0 && y == 0)) {
                     short[][] data = load_3DEM(topLeftLatLon, lonCellNumber+6, latCellNumber+6, (x*(lonCellNumber-1))-3, (y*(latCellNumber-1))-3, hgtFileLoader);
-                    data = downsampleHGTDatafile(new HGTDatafile(suggestedBoundingBox, data)).data;
-                    data = downsampleHGTDatafile(new HGTDatafile(suggestedBoundingBox, data)).data;
+                    data = downsampleHGTDatafile(new HGTDatafile(suggestedBoundingBox, data, HGTDatafile.HGT_Type.hgtOther)).data;
+                    data = downsampleHGTDatafile(new HGTDatafile(suggestedBoundingBox, data, HGTDatafile.HGT_Type.hgtOther)).data;
 
                     float offset_x = (float)(((lonCellNumber/4)*(cellWidth_LonMeters*4))*x);
                     if ((lonCellNumber/4)%2!=0) //uneven; fuck me if I know why
@@ -642,42 +706,45 @@ public class HGTWorker {
                 }
             }
         }
+        return gltfFile;
+    }
 
 
-        /**
+    public static GLTFDatafile getTileGLTF_3DEM(LatLonBoundingBox boundingBox, int zoomLevel, HGTFileLoader hgtFileLoader) throws IOException {
+        MapTile[][] mtiles = MapTileWorker.getTilesFromBoundingBox(boundingBox, zoomLevel);
+        int width = mtiles.length;
+        int height = mtiles[0].length;
 
-
-        int slice_x_width = lonCellNumber/3;
-        int slice_y_width = latCellNumber/3;
+        LatLon center = boundingBox.center;
 
         GLTFDatafile gltfFile = new GLTFDatafile();
 
-        for (int x = 0; x<3; x++) {
-            for (int y=0; y<3; y++) {
+        for (int x=0; x<width; x++) {
+            for (int y=0; y<height; y++) {
+                System.out.println(mtiles[x][y].toString());
+                LatLonBoundingBox tileBbox = mtiles[x][y].getBoundingBox();
+                System.out.println(tileBbox.toString());
+                int lonCellNumber = (int)(tileBbox.widthLonDegree*(double) HGTDatafile.DEM3_cells_per_row);
+                int latCellNumber = (int)(tileBbox.widthLatDegree*(double) HGTDatafile.DEM3_cells_per_row);
+                double cellWidth_LatMeters = tileBbox.widthLatMeters/(double)latCellNumber;
+                double cellWidth_LonMeters = tileBbox.widthLonMeters/(double)lonCellNumber;
 
+                latCellNumber+=2;
+                lonCellNumber+=2;
 
-                float offset_x = (float)(x-1)*(slice_x_width*cellWidth_LonMeters);
-                float offset_y = (float)(1-y)*(slice_y_width*cellWidth_LatMeters);
+                float offset_x = (float)HGTWorker.degrees2distance_longitude(tileBbox.getTopLeft().getLongitude()-center.getLongitude(), center.getLatitude());
+                float offset_y = (float)HGTWorker.degrees2distance_latitude(tileBbox.getTopLeft().getLatitude()-center.getLatitude());
 
-                if (!(x==1 && y == 1)) {
-                    short[][] data = load_3DEM(topLeftLatLon, slice_x_width+8, slice_y_width+8, x*slice_x_width-4, y*slice_y_width-4, hgtFileLoader);
-                    data = downsampleHGTDatafile(new HGTDatafile(suggestedBoundingBox, data)).data;
-                    data = downsampleHGTDatafile(new HGTDatafile(suggestedBoundingBox, data)).data;
-                    gltfFile.addGLTFMesh(data, (slice_x_width + 8)/4, (slice_y_width + 8)/4, cellWidth_LatMeters*4f, cellWidth_LonMeters*4f, false, false, offset_x, offset_y);
-
-                } else {
-                    short[][] data = load_3DEM(topLeftLatLon, slice_x_width, slice_y_width, x*slice_x_width, y*slice_y_width, hgtFileLoader);
-                    gltfFile.addGLTFMesh(data, slice_x_width, slice_y_width, cellWidth_LatMeters, cellWidth_LonMeters, true, true, offset_x, offset_y);
-                }
+                short[][] data = load_3DEM(tileBbox.getTopLeft(), lonCellNumber, latCellNumber, -1,-1, hgtFileLoader);
+                gltfFile.addGLTFMesh(data, lonCellNumber, latCellNumber, cellWidth_LatMeters, cellWidth_LonMeters, false, true, offset_x, offset_y);
             }
         }
-**/
 
         return gltfFile;
     }
-    
-    
-    
+
+
+
     public static class FileFormatException extends RuntimeException {
         String message = "";
         public FileFormatException(String message) {

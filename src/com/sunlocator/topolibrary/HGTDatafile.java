@@ -10,6 +10,11 @@ package com.sunlocator.topolibrary;
  * @author rainer
  */
 public class HGTDatafile {
+
+    public enum HGT_Type {
+        DEM1, DEM3, hgtOther
+    }
+
     short[][] data;
     public LatLonBoundingBox bounds;
     public int cellsLat_Y; //
@@ -65,12 +70,18 @@ public class HGTDatafile {
      * width of a cell in meters along longitude (W-E)
      */
     public double cellWidth_LonMeters;
+
+    /**
+     * Type of this file (DEM1, DEM3 or other)
+     */
+    public HGT_Type hgt_type;
     
-    public HGTDatafile(LatLonBoundingBox bounds, short[][] data) {
+    public HGTDatafile(LatLonBoundingBox bounds, short[][] data, HGT_Type hgt_type) {
         this.bounds = bounds;
         this.data = data;
         cellsLat_Y = data[0].length;
         cellsLon_X = data.length;
+        this.hgt_type = hgt_type;
         
         cellWidth_LatDegree = bounds.widthLatDegree/(double)cellsLat_Y;
         cellWidth_LonDegree = bounds.widthLonDegree/(double)cellsLon_X;

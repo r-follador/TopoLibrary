@@ -15,10 +15,9 @@ import java.util.Base64;
  */
 public class GLTFDatafile {
     
-    private ArrayList<GLTFMesh> meshes = new ArrayList<>();
+    private final ArrayList<GLTFMesh> meshes = new ArrayList<>();
     
     public GLTFDatafile() {
-        
     }
     
     public void addGLTFMesh(HGTDatafile hgt, boolean enclosement) {
@@ -31,8 +30,6 @@ public class GLTFDatafile {
 
     public void addGLTFMesh(HGTDatafile hgt, boolean enclosement, int x_offset, int y_offset) {
         meshes.add((new GLTFMeshTerrain(hgt, true, x_offset, y_offset)));
-
-
         if (enclosement) {
             meshes.add((new GLTFMeshEnclosement(hgt.data, hgt.cellsLon_X, hgt.cellsLat_Y, hgt.cellWidth_LatMeters, hgt.cellWidth_LonMeters, x_offset, y_offset)));
         }
@@ -46,7 +43,7 @@ public class GLTFDatafile {
         }
     }
 
-    private class GLTFMesh
+    private static class GLTFMesh
     {
         String payloadVertices = ""; //float Array to Base64
         String payloadIndices = ""; //int array to base64
@@ -64,7 +61,6 @@ public class GLTFDatafile {
         public String getPayloadtexcoord() {
             return payloadTexcoord;
         }
-
         boolean UV = false;
 
         public boolean getUV() {
@@ -107,7 +103,6 @@ public class GLTFDatafile {
             return payloadVertices;
         }
 
-
         public String getPayloadIndices() {
             return  payloadIndices;
         }
@@ -129,7 +124,7 @@ public class GLTFDatafile {
         }
     }
 
-    private class GLTFMeshEnclosement extends GLTFMesh{
+    private static class GLTFMeshEnclosement extends GLTFMesh{
 
         public GLTFMeshEnclosement(HGTDatafile hgt) {
             this(hgt, 0,0);
@@ -173,8 +168,8 @@ public class GLTFDatafile {
             min_x = left_x+offset_x;
             min_height = 0;
             max_height = -1000;
-            min_y = ((float) ((cellsLat_Y-1) - (cellsLat_Y / 2)) * (float) cellWidth_LatMeters * -1.0f)+(float)offset_y;
-            max_x = ((float) ((cellsLon_X-1) - (cellsLon_X / 2)) * (float) cellWidth_LonMeters)+(float)offset_x;
+            min_y = ((float) ((cellsLat_Y-1) - (cellsLat_Y / 2)) * (float) cellWidth_LatMeters * -1.0f)+offset_y;
+            max_x = ((float) ((cellsLon_X-1) - (cellsLon_X / 2)) * (float) cellWidth_LonMeters)+offset_x;
 
             //North enclosure
             for (int x = 0; x < cellsLon_X; x++) {
@@ -253,7 +248,7 @@ public class GLTFDatafile {
         }
     }
     
-    private class GLTFMeshTerrain extends GLTFMesh{
+    private static class GLTFMeshTerrain extends GLTFMesh{
 
         public GLTFMeshTerrain(HGTDatafile hgt) {
             this(hgt, true, 0,0);

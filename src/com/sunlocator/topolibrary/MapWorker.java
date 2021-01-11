@@ -15,8 +15,6 @@ public class MapWorker {
         //test url:
         //https://api.maptiler.com/maps/basic/static/9.37,46.71,9.80,47.01/2000x2000.png?key=***REMOVED***&path=9.37,46.71|9.80,46.71|9.80,47.01|9.37,47.01|9.37,46.71
 
-
-        BufferedImage image =null;
         //maptiler url
         //URL url =new URL("https://api.maptiler.com/maps/basic/static/"+boundingBox.getW_Bound()+","+boundingBox.getS_Bound()+","+boundingBox.getE_Bound()+","+boundingBox.getN_Bound()+"/"+mapSize_x+"x"+mapSize_y+".png?key=***REMOVED***");
         //URL url = new URL("https://api.maptiler.com/maps/basic/static/"+boundingBox.getCenter().getLongitude()+","+boundingBox.getCenter().getLatitude()+","+(zoomSetting.zoomLevel-1)+"/"+zoomSetting.widthPx+"x"+zoomSetting.widthPx+".png?key=***REMOVED***");
@@ -34,6 +32,10 @@ public class MapWorker {
         OSMZoomSetting zoomSetting = getBestZoomLevel(boundingBox, 1024);
         URL url = new URL("https://api.maptiler.com/maps/dae70481-0d42-4345-867d-216c14f6ead8/static/"+boundingBox.getCenter().getLongitude()+","+boundingBox.getCenter().getLatitude()+","+(zoomSetting.zoomLevel-1)+"/"+zoomSetting.widthPx+"x"+zoomSetting.widthPx+".png?key=***REMOVED***");
 
+        return getImageFromUrl(url);
+    }
+
+    private static BufferedImage getImageFromUrl(URL url) throws IOException {
         System.out.println("url to call: "+url.toString());
         //System.out.println(url.toString());
         final HttpURLConnection connection = (HttpURLConnection) url.openConnection();
@@ -46,24 +48,26 @@ public class MapWorker {
         return ImageIO.read(connection.getInputStream());
     }
 
+    /**
+     * Download tile image from maptiler (x,y,zoom)
+     * @param x
+     * @param y
+     * @param z
+     * @return
+     * @throws IOException
+     */
     public static BufferedImage getMapPng(int x, int y, int z) throws IOException {
-
-
         URL url = new URL("https://api.maptiler.com/maps/dae70481-0d42-4345-867d-216c14f6ead8/"+z+"/"+x+"/"+y+"@2x.png?key=***REMOVED***");
-
-        //System.out.println(url.toString());
-        final HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-        connection.setConnectTimeout(5 * 1000);
-        connection.setReadTimeout(10 * 1000);
-        connection.setRequestProperty(
-                "User-Agent",
-                "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_5) AppleWebKit/537.31 (KHTML, like Gecko) Chrome/26.0.1410.65 Safari/537.31");
-        connection.connect();
-        return ImageIO.read(connection.getInputStream());
+        return getImageFromUrl(url);
     }
 
+    /**
+     * Returns the smallest tile (largest zoom factor) that covers the boundingBox
+     * @param boundingBox
+     * @return
+     * @throws IOException
+     */
     public static BufferedImage getMapRasterTiles(LatLonBoundingBox boundingBox) throws IOException {
-
         //TODO: see https://github.com/mapbox/tilebelt/blob/master/index.js
 
         int[] raster = bboxToTile(boundingBox);
@@ -75,7 +79,7 @@ public class MapWorker {
     /**
      * Get the smallest tile to cover a bbox
      * @param boundingBox
-     * @return
+     * @return x,y,zoom
      */
     private static int[] bboxToTile(LatLonBoundingBox boundingBox) {
         int[] min = pointToTile(boundingBox.getW_Bound(), boundingBox.getN_Bound(), 32);
@@ -84,15 +88,12 @@ public class MapWorker {
 
         int z = getBboxZoom(bbox);
         if (z == 0) {
-            int[] out = {0, 0, 0};
-            return out;
+            return new int[]{0, 0, 0};
         }
         int x = bbox[0] >>> (32 - z);
         int y = bbox[1] >>> (32 - z);
 
-        int[] out = {x,y,z};
-
-        return out;
+        return new int[]{x,y,z};
     }
 
     private static int getBboxZoom(int[] bbox) {
@@ -104,7 +105,6 @@ public class MapWorker {
                 return z;
             }
         }
-
         return MAX_ZOOM;
     }
 
@@ -140,8 +140,7 @@ public class MapWorker {
         // Wrap Tile X
         x = x % z2;
         if (x < 0) x = x + z2;
-        double[] A = {x, y, z};
-        return A;
+        return new double[]{x, y, z};
     }
 
 
