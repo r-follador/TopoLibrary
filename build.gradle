@@ -1,0 +1,23 @@
+plugins {
+    id 'java'
+}
+
+group 'com.sunlocator'
+version '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+sourceSets {
+    main {
+        java {
+            srcDirs = ['src']
+        }
+    }
+}
+
+dependencies {
+    implementation 'junit:junit:4.12'
+    implementation 'io.jenetics:jpx:2.0.0'
+}

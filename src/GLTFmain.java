@@ -10,6 +10,7 @@ import com.sunlocator.topolibrary.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.net.URL;
 
 
 /**
@@ -24,7 +25,7 @@ public class GLTFmain {
     public static void main(String[] args) {
         //LatLon latlon = new LatLon(46.86365, 9.59043);
         LatLon latlon = new LatLon(	51.1056, -115.3573);
-        LatLonBoundingBox boundingBox = new LatLonBoundingBox(latlon, 10000);
+        LatLonBoundingBox boundingBox = new LatLonBoundingBox(latlon, 20000);
        
        
        try {
@@ -52,17 +53,17 @@ public class GLTFmain {
            MapWorker.resizeAndwriteImageToFile(1024, map_old, "/home/rainer/Software_Dev/IdeaProjects/SunTopoStatic/terrain.map_old.png");
 
            //not LOD
-           /**
+/**
            HGTDatafile hgt = HGTWorker.loadFromBoundingBox_3DEM(boundingBox, hgtFileLoader);
            GLTFDatafile gltfFile_noLod = new GLTFDatafile();
-           gltfFile_noLod.addGLTFMesh(hgt, true);
+           gltfFile_noLod.addGLTFMesh(hgt, true, new GLTFDatafile.UvTexture(new URL("https://raw.githubusercontent.com/KhronosGroup/glTF-Tutorials/master/gltfTutorial/images/testTexture.png")));
 
            PrintWriter out = new PrintWriter("/home/rainer/Software_Dev/IdeaProjects/SunTopoStatic/terrain_noLOD.gltf");
            out.print(gltfFile_noLod.getString());
            out.close();
            out.close();
-            **/
 
+**/
        } catch (IOException e) {
            System.err.println(e);
        }

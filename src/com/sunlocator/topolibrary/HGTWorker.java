@@ -7,10 +7,10 @@ package com.sunlocator.topolibrary;
 
 import com.sunlocator.topolibrary.MapTile.MapTile;
 import com.sunlocator.topolibrary.MapTile.MapTileWorker;
-import jdk.jfr.Experimental;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.URL;
 
 /**
  *
@@ -202,9 +202,8 @@ public class HGTWorker {
     public static short[][] load_3DEM(LatLon topleft, int cells_x_lon, int cells_y_lat, int xcell_offset, int ycell_offset, HGTFileLoader hgtFileLoader_3DEM) throws  IOException {
         short[][] data = new short[cells_x_lon][cells_y_lat];
 
-        final double cellWidth = 1d/(double) HGTDatafile.DEM3_cells_per_row;
 
-        int start_x_topleft = (int)((topleft.getLongitude()-Math.floor(topleft.getLongitude()))/cellWidth) + xcell_offset;
+        int start_x_topleft = (int)((topleft.getLongitude()-Math.floor(topleft.getLongitude()))*(double) HGTDatafile.DEM3_cells_per_row) + xcell_offset;
         int lon = (int) Math.floor(topleft.getLongitude()); //left
 
         if (start_x_topleft>= HGTDatafile.DEM3_cells_per_row) { //if the start is already on a new file
@@ -221,7 +220,7 @@ public class HGTWorker {
         while (cell_count_x < cells_x_lon) {
             int len_x = Math.min(HGTDatafile.DEM3_cells_per_row - start_x_topleft, missing_len_x);
 
-            int start_y_topleft = (int)((Math.ceil(topleft.getLatitude())-topleft.getLatitude())/cellWidth) + ycell_offset;
+            int start_y_topleft = (int)((Math.ceil(topleft.getLatitude())-topleft.getLatitude())*(double) HGTDatafile.DEM3_cells_per_row) + ycell_offset;
 
             int cell_count_y = 0;
             int lat = (int) Math.ceil(topleft.getLatitude()); //top
@@ -684,6 +683,8 @@ public class HGTWorker {
 
         GLTFDatafile gltfFile = new GLTFDatafile();
 
+        GLTFDatafile.UvTexture uvTexture = new GLTFDatafile.UvTexture(false, false);
+
         for (int x=-1; x<=1; x++) {
             for (int y=-1; y<=1; y++) {
                 if (!(x==0 && y == 0)) {
@@ -697,11 +698,11 @@ public class HGTWorker {
                     float offset_y = (float)(((latCellNumber/4)*(cellWidth_LatMeters*4))*y*-1f);
                     if ((latCellNumber/4)%2!=0) //uneven; fuck me if I know why
                         offset_y-=2f*cellWidth_LatMeters;
-                    gltfFile.addGLTFMesh(data, (lonCellNumber+6)/4, (latCellNumber+6)/4, cellWidth_LatMeters*4f, cellWidth_LonMeters*4f, false, false, offset_x, offset_y);
+                    gltfFile.addGLTFMesh(data, (lonCellNumber+6)/4, (latCellNumber+6)/4, cellWidth_LatMeters*4f, cellWidth_LonMeters*4f, false, offset_x, offset_y, uvTexture, uvTexture);
 
                 } else {
                     short[][] data = load_3DEM(topLeftLatLon, lonCellNumber, latCellNumber, 0,0, hgtFileLoader);
-                    gltfFile.addGLTFMesh(data, lonCellNumber, latCellNumber, cellWidth_LatMeters, cellWidth_LonMeters, true, true, 0, 0);
+                    gltfFile.addGLTFMesh(data, lonCellNumber, latCellNumber, cellWidth_LatMeters, cellWidth_LonMeters, true, 0, 0, new GLTFDatafile.UvTexture(true, false), uvTexture);
 
                 }
             }
@@ -710,7 +711,16 @@ public class HGTWorker {
     }
 
 
-    public static GLTFDatafile getTileGLTF_3DEM(LatLonBoundingBox boundingBox, int zoomLevel, HGTFileLoader hgtFileLoader) throws IOException {
+    /**
+     *
+     * @param boundingBox
+     * @param zoomLevel
+     * @param hgtFileLoader
+     * @param textureURL in the form of https://api.maptiler.com/maps/basic/%d/%d/%d.png where ½d, %d, ½d is zoom, x, y (or null if unused)
+     * @return
+     * @throws IOException
+     */
+    public static GLTFDatafile getTileGLTF_3DEM(LatLonBoundingBox boundingBox, int zoomLevel, boolean enclosement, HGTFileLoader hgtFileLoader, String textureURL) throws IOException {
         MapTile[][] mtiles = MapTileWorker.getTilesFromBoundingBox(boundingBox, zoomLevel);
         int width = mtiles.length;
         int height = mtiles[0].length;
@@ -719,24 +729,57 @@ public class HGTWorker {
 
         GLTFDatafile gltfFile = new GLTFDatafile();
 
+        GLTFDatafile.UvTexture enclosementTexture = new GLTFDatafile.UvTexture(false, false);
+        enclosementTexture.metallicFactor=1;
+
+        //For each tile
         for (int x=0; x<width; x++) {
             for (int y=0; y<height; y++) {
-                System.out.println(mtiles[x][y].toString());
-                LatLonBoundingBox tileBbox = mtiles[x][y].getBoundingBox();
-                System.out.println(tileBbox.toString());
-                int lonCellNumber = (int)(tileBbox.widthLonDegree*(double) HGTDatafile.DEM3_cells_per_row);
-                int latCellNumber = (int)(tileBbox.widthLatDegree*(double) HGTDatafile.DEM3_cells_per_row);
-                double cellWidth_LatMeters = tileBbox.widthLatMeters/(double)latCellNumber;
-                double cellWidth_LonMeters = tileBbox.widthLonMeters/(double)lonCellNumber;
 
-                latCellNumber+=2;
-                lonCellNumber+=2;
+                LatLonBoundingBox tileBbox = mtiles[x][y].getBoundingBox();
+                //System.out.println(tileBbox.toString());
+
+                int lonCellNumber = (int)Math.ceil(tileBbox.widthLonDegree*(double) HGTDatafile.DEM3_cells_per_row);
+                int start_x_topleft = (int)((tileBbox.getW_Bound()-Math.floor(tileBbox.getW_Bound()))*(double) HGTDatafile.DEM3_cells_per_row);
+                int start_x_bottomright = (int)((tileBbox.getE_Bound()-Math.floor(tileBbox.getE_Bound()))*(double) HGTDatafile.DEM3_cells_per_row);
+                lonCellNumber = Math.abs(start_x_topleft-start_x_bottomright)+1;
+
+                int latCellNumber = (int)Math.ceil(tileBbox.widthLatDegree*(double) HGTDatafile.DEM3_cells_per_row);
+                int start_y_topleft = (int)((Math.ceil(tileBbox.getN_Bound())-tileBbox.getN_Bound())*(double) HGTDatafile.DEM3_cells_per_row);
+                int start_y_bottomright = (int)((Math.ceil(tileBbox.getS_Bound())-tileBbox.getS_Bound())*(double) HGTDatafile.DEM3_cells_per_row);
+                latCellNumber = Math.abs(start_y_topleft-start_y_bottomright)+1;
+
+                //double cellWidth_LatMeters = HGTWorker.lengthOfDegreeLatitude()/(double)HGTDatafile.DEM3_cells_per_row;
+                //double cellWidth_LonMeters = HGTWorker.lengthOfDegreeLongitude(center.getLatitude())/(double)HGTDatafile.DEM3_cells_per_row;
+
+                double cellWidth_LatMeters = HGTWorker.degrees2distance_latitude(tileBbox.getWidthLatDegree())/(double)(latCellNumber-1);
+                double cellWidth_LonMeters = HGTWorker.degrees2distance_longitude(tileBbox.getWidthLonDegree(), center.getLatitude())/(double)(lonCellNumber-1);
 
                 float offset_x = (float)HGTWorker.degrees2distance_longitude(tileBbox.getTopLeft().getLongitude()-center.getLongitude(), center.getLatitude());
                 float offset_y = (float)HGTWorker.degrees2distance_latitude(tileBbox.getTopLeft().getLatitude()-center.getLatitude());
 
-                short[][] data = load_3DEM(tileBbox.getTopLeft(), lonCellNumber, latCellNumber, -1,-1, hgtFileLoader);
-                gltfFile.addGLTFMesh(data, lonCellNumber, latCellNumber, cellWidth_LatMeters, cellWidth_LonMeters, false, true, offset_x, offset_y);
+                //float offset_x = 0;
+                //float offset_y = 0;
+
+                short[][] data = load_3DEM(tileBbox.getTopLeft(), lonCellNumber, latCellNumber, 0,0, hgtFileLoader);
+
+                GLTFDatafile.UvTexture UVTexture;
+                if (textureURL != null && !textureURL.isEmpty()) {
+                    UVTexture = new GLTFDatafile.UvTexture(new URL(String.format(textureURL, mtiles[x][y].zoom, mtiles[x][y].x, mtiles[x][y].y)));
+                } else {
+                    UVTexture = new GLTFDatafile.UvTexture(true, false);
+                }
+
+                //UVTexture.considerOverlap = 1f;
+
+
+                boolean enclosementNeeded =  enclosement && (x==0 || x == width-1 || y==0 || y==height-1);
+
+                GLTFDatafile.GLTFMesh mesh = gltfFile.addGLTFMesh(data, lonCellNumber, latCellNumber, cellWidth_LatMeters, cellWidth_LonMeters, enclosementNeeded, offset_x, offset_y, UVTexture, enclosementTexture);
+
+                /**System.out.printf("Max x / y: %f %f \n", mesh.getMax_x(), mesh.getMax_y());
+                System.out.printf("Min x / y: %f %f \n", mesh.getMin_x(), mesh.getMin_y());
+                System.out.printf("Cell width long / lat: %f %f\n", cellWidth_LonMeters, cellWidth_LatMeters);**/
             }
         }
 

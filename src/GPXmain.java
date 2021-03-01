@@ -15,6 +15,7 @@ import io.jenetics.jpx.Track;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.time.format.DateTimeFormatter;
 
 
 /**
@@ -27,7 +28,7 @@ public class GPXmain {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        File gpsTrack = new File("/home/rainer/Software_Dev/IdeaProjects/SunTopoStatic/GPXtesting/activity_2286936652.gpx");
+        File gpsTrack = new File("/home/rainer/Software_Dev/IdeaProjects/SunTopoStatic/GPXtesting/activity_6265044504.tcx");
         String directory_1DEM = "/home/rainer/Software_Dev/HGT_1DEM/";
         HGTFileLoader_LocalStorage hgtFileLoader = new HGTFileLoader_LocalStorage(directory_1DEM);
 
@@ -42,10 +43,12 @@ public class GPXmain {
 
            Track reduced = GPXWorker.reduceTrackSegments(track, 2);
            System.out.println("Points reduced: "+reduced.getSegments().get(0).getPoints().size());
+
+           GPXWorker.TrackSummary trackSummary = GPXWorker.getTrackSummary(reduced);
            //BufferedImage mapReduced = GPXWorker.getMapPng(reduced);
            //MapWorker.resizeAndwriteImageToFile(1024, mapReduced, "/home/rainer/Software_Dev/IdeaProjects/SunTopoStatic/GPXtesting/gps-map-reduced.png");
 
-           GPXWorker.getHeight(reduced, hgtFileLoader);
+           //GPXWorker.getHeight(reduced, hgtFileLoader);
        } catch (IOException e) {
            System.err.println(e);
        }

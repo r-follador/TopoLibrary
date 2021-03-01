@@ -60,7 +60,7 @@ public class GPXtoGLTFmain {
            showImage(image);**/
 
 
-           GLTFDatafile gltfFile = HGTWorker.getTileGLTF_3DEM(boundingBox, 13, hgtFileLoader);
+           GLTFDatafile gltfFile = HGTWorker.getTileGLTF_3DEM(boundingBox, 15, true, hgtFileLoader, "https://api.maptiler.com/maps/basic/%d/%d/%d.png?key=***REMOVED***");
            PrintWriter out3 = new PrintWriter("/home/rainer/Software_Dev/IdeaProjects/SunTopoStatic/terrain_tiles.gltf");
            out3.print(gltfFile.getString());
            out3.close();

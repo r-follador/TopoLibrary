@@ -9,6 +9,8 @@ import java.awt.*;
 import java.awt.geom.Path2D;
 import java.awt.image.BufferedImage;
 import java.io.*;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -177,6 +179,89 @@ public class GPXWorker {
         double ay = pvy - pvdot * dy;
 
         return Math.hypot(ax, ay);
+    }
+
+    public static TrackSummary getTrackSummary(Track track) {
+        int up = 0;
+        int down = 0;
+        long time = 0;
+
+        int points = 0;
+
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd/yyyy - HH:mm:ss SSS");
+
+
+        for (TrackSegment segment : track.getSegments()) {
+            points += segment.getPoints().size();
+            for (int i=1; i<segment.getPoints().size(); i++) {
+
+                int ele = segment.getPoints().get(i).getElevation().get().intValue()-segment.getPoints().get(i-1).getElevation().get().intValue();
+                long timediff = ChronoUnit.SECONDS.between(segment.getPoints().get(i-1).getTime().get(), segment.getPoints().get(i).getTime().get());
+                if (ele<0)
+                    down -= ele;
+                else
+                    up += ele;
+                time += timediff;
+            }
+        }
+
+        TrackSummary out = new TrackSummary();
+        out.elevationDown = down;
+        out.elevationUp = up;
+        out.duration = (int)(time/60);
+        out.points = points;
+        out.segments = track.getSegments().size();
+
+        return out;
+    }
+
+    public static class TrackSummary {
+        public int getElevationUp() {
+            return elevationUp;
+        }
+
+        public void setElevationUp(int elevationUp) {
+            this.elevationUp = elevationUp;
+        }
+
+        public int getElevationDown() {
+            return elevationDown;
+        }
+
+        public void setElevationDown(int elevationDown) {
+            this.elevationDown = elevationDown;
+        }
+
+        public int getDuration() {
+            return duration;
+        }
+
+        public void setDuration(int duration) {
+            this.duration = duration;
+        }
+
+        public int getSegments() {
+            return segments;
+        }
+
+        public void setSegments(int segments) {
+            this.segments = segments;
+        }
+
+        public int getPoints() {
+            return points;
+        }
+
+        public void setPoints(int points) {
+            this.points = points;
+        }
+
+        public int elevationUp;
+        public int elevationDown;
+        public int duration;
+        public int segments;
+        public int points;
     }
 
     public static void getHeight(Track track, HGTFileLoader hgtFileLoader_1DEM) throws IOException {
