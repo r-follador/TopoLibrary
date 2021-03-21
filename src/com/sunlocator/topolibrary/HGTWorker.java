@@ -765,7 +765,7 @@ public class HGTWorker {
 
                 GLTFDatafile.UvTexture UVTexture;
                 if (textureURL != null && !textureURL.isEmpty()) {
-                    UVTexture = new GLTFDatafile.UvTexture(new URL(String.format(textureURL, mtiles[x][y].zoom, mtiles[x][y].x, mtiles[x][y].y)));
+                    UVTexture = new GLTFDatafile.UvTexture(String.format(textureURL, mtiles[x][y].zoom, mtiles[x][y].x, mtiles[x][y].y));
                 } else {
                     UVTexture = new GLTFDatafile.UvTexture(true, false);
                 }
@@ -776,7 +776,14 @@ public class HGTWorker {
                 boolean enclosementNeeded =  enclosement && (x==0 || x == width-1 || y==0 || y==height-1);
 
                 GLTFDatafile.GLTFMesh mesh = gltfFile.addGLTFMesh(data, lonCellNumber, latCellNumber, cellWidth_LatMeters, cellWidth_LonMeters, enclosementNeeded, offset_x, offset_y, UVTexture, enclosementTexture);
-
+                mesh.metadata.put("NBound", String.valueOf(tileBbox.getN_Bound()));
+                mesh.metadata.put("SBound", String.valueOf(tileBbox.getS_Bound()));
+                mesh.metadata.put("WBound", String.valueOf(tileBbox.getW_Bound()));
+                mesh.metadata.put("EBound", String.valueOf(tileBbox.getE_Bound()));
+                mesh.metadata.put("Distance1DegreeLatitude", String.valueOf(HGTWorker.degrees2distance_latitude(1d)));
+                mesh.metadata.put("Distance1DegreeLongitude", String.valueOf(HGTWorker.degrees2distance_longitude(1d, center.getLatitude())));
+                mesh.metadata.put("cellWidth_LatMeters", String.valueOf(cellWidth_LatMeters));
+                mesh.metadata.put("cellWidth_LonMeters", String.valueOf(cellWidth_LonMeters));
                 /**System.out.printf("Max x / y: %f %f \n", mesh.getMax_x(), mesh.getMax_y());
                 System.out.printf("Min x / y: %f %f \n", mesh.getMin_x(), mesh.getMin_y());
                 System.out.printf("Cell width long / lat: %f %f\n", cellWidth_LonMeters, cellWidth_LatMeters);**/

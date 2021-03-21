@@ -32,6 +32,7 @@ public class GPXtoGLTFmain {
      */
     public static void main(String[] args) {
         File gpsTrack = new File("/home/rainer/Software_Dev/IdeaProjects/SunTopoStatic/GPXtesting/activity_2286936652.gpx");
+        //File gpsTrack = new File("/home/rainer/Software_Dev/IdeaProjects/SunTopoStatic/GPXtesting/3581739.gpx");
         String directory_3DEM = "/home/rainer/Software_Dev/HGT/";
         HGTFileLoader_LocalStorage hgtFileLoader = new HGTFileLoader_LocalStorage(directory_3DEM);
 
@@ -44,6 +45,7 @@ public class GPXtoGLTFmain {
            Track reduced = GPXWorker.reduceTrackSegments(track, 2);
 
            LatLonBoundingBox boundingBox = GPXWorker.getTrueTrackBoundingBox(reduced);
+           System.out.println(boundingBox.toString());
            int zoom = 13;
 
            /**MapTile tile = new MapTile(zoom, boundingBox.getCenter());
@@ -60,7 +62,7 @@ public class GPXtoGLTFmain {
            showImage(image);**/
 
 
-           GLTFDatafile gltfFile = HGTWorker.getTileGLTF_3DEM(boundingBox, 15, true, hgtFileLoader, "https://api.maptiler.com/maps/basic/%d/%d/%d.png?key=***REMOVED***");
+           GLTFDatafile gltfFile = HGTWorker.getTileGLTF_3DEM(boundingBox, 13, true, hgtFileLoader, "https://api.maptiler.com/maps/basic/%d/%d/%d.png?key=***REMOVED***");
            PrintWriter out3 = new PrintWriter("/home/rainer/Software_Dev/IdeaProjects/SunTopoStatic/terrain_tiles.gltf");
            out3.print(gltfFile.getString());
            out3.close();

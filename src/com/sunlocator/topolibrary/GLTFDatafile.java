@@ -7,8 +7,7 @@ package com.sunlocator.topolibrary;
 
 import java.net.URL;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Base64;
+import java.util.*;
 
 /**
  *
@@ -87,7 +86,7 @@ public class GLTFDatafile {
 
         public float metallicFactor=0;
         public float roughnessFactor=1;
-        URL url;
+        String url;
 
         boolean uv;
         boolean flipY;
@@ -95,11 +94,11 @@ public class GLTFDatafile {
         //for UV calculation: consider overlap (usually 1 additional row/column of cells on each side)
         float considerOverlap=0;
 
-        public UvTexture(URL url) {
+        public UvTexture(String url) {
             this(url, 0);
         }
 
-        public UvTexture(URL url, int considerOverlap) {
+        public UvTexture(String url, int considerOverlap) {
             this.url = url;
             flipY = true;
             uv = true;
@@ -118,12 +117,6 @@ public class GLTFDatafile {
         public boolean hasTexture() {
             return url!=null;
         }
-
-        //determines to flipY in UV
-        public boolean usesImage() {
-            return true;
-        }
-
     }
 
     public static class GLTFMesh
@@ -146,6 +139,7 @@ public class GLTFDatafile {
             return payloadTexcoord;
         }
 
+        public HashMap<String, String> metadata = new HashMap<>();
 
         int texcoordbytelength = 0;
 
@@ -497,7 +491,19 @@ public class GLTFDatafile {
                             (meshes.get(i).getUVTexture().hasUV()?",           \"TEXCOORD_0\" : "+(meshesCount++)+"\n":"") +
                     "       }" +
                     (meshes.get(i).getUVTexture().hasTexture()?",\n       \"material\" : "+materialCount++ +"\n":"\n") +
-                    "   } ]\n" +
+                    "   } ],\n" + //primitives finito
+                    "   \"extras\": {\n");
+                        Iterator<String> iterator = meshes.get(i).metadata.keySet().iterator();
+                        while (iterator.hasNext()) {
+                            String key = iterator.next();
+                            String value = meshes.get(i).metadata.get(key);
+                            stringBuffer.append("     \""+key+"\": \""+ value+"\"");
+
+                            if (iterator.hasNext()) {
+                                stringBuffer.append(","+"\n");
+                            }
+                        }
+                    stringBuffer.append("}\n"+ //extras finito
                     "}\n");
                     if (i != meshes.size()-1)
                         stringBuffer.append(",");
@@ -522,7 +528,7 @@ public class GLTFDatafile {
                         "      },\n" +
                         "     \"metallicFactor\" : "+String.format("%.1f", meshes.get(meshCount).UVTexture.metallicFactor)+",\n" +
                         "     \"roughnessFactor\" : "+String.format("%.1f", meshes.get(meshCount).UVTexture.roughnessFactor)+"\n" +
-                        "    }\n" +
+                        "    }\n" +//pbrMetallicRoughness finito
                         "}");
                         if (i != materialCount-1)
                             stringBuffer.append(",");
