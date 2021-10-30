@@ -19,5 +19,6 @@ sourceSets {
 
 dependencies {
     compile 'junit:junit:4.12'
+    //implementation 'io.jenetics:jpx:2.0.0'
     implementation group: 'io.jenetics', name: 'jpx', version: '2.2.0'
 }

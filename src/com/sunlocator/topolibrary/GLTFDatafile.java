@@ -247,25 +247,22 @@ public class GLTFDatafile {
 
             int cellCount = 0;
 
-            float top_y = ((float)(cellsLat_Y-1) / 2f) * (float) cellWidth_LatMeters;
-            float left_x = (((float)(cellsLon_X-1) / 2f)) * (float) cellWidth_LonMeters * -1;
-
-            max_y = top_y+offset_y;
-            min_x = left_x+offset_x;
+            max_y = offset_y;
+            min_x = offset_x;
             min_height = 0;
             max_height = -1000;
-            min_y = ((((float)(cellsLat_Y-1) / 2f)) * (float) cellWidth_LatMeters * -1)+offset_y;
-            max_x = ((((float)(cellsLon_X-1) / 2f)) * (float) cellWidth_LonMeters)+offset_x;
+            min_y = ((((float)(cellsLat_Y-1))) * (float) cellWidth_LatMeters * -1)+offset_y;
+            max_x = (((float)(cellsLon_X-1)) * (float) cellWidth_LonMeters)+offset_x;
 
             //North enclosure
             for (int x = 0; x < cellsLon_X; x++) {
-                float x_m = ((float)x - ((float)(cellsLon_X-1) / 2f)) * (float) cellWidth_LonMeters;
+                float x_m = ((float)x * (float) cellWidth_LonMeters);
                 verticesArray[cellCount++]=x_m+offset_x;
-                verticesArray[cellCount++]=top_y+offset_y;
+                verticesArray[cellCount++]=max_y;
                 verticesArray[cellCount++]=0f;
 
                 verticesArray[cellCount++]=x_m+offset_x;
-                verticesArray[cellCount++]=top_y+offset_y;
+                verticesArray[cellCount++]=max_y;
                 verticesArray[cellCount++]= data[x][0];
 
                 if ((float) data[x][0] > max_height) {
@@ -275,12 +272,12 @@ public class GLTFDatafile {
 
             //East enclosure
             for (int y = 0; y < cellsLat_Y; y++) {
-                float y_m =  ((float)y - ((float)(cellsLat_Y-1) / 2f)) * (float) cellWidth_LatMeters * -1.0f; //y-axis is flipped compared to array y-axis
-                verticesArray[cellCount++]=(left_x * -1f)+offset_x;
+                float y_m =  ((float)y) * (float) cellWidth_LatMeters * -1.0f; //y-axis is flipped compared to array y-axis
+                verticesArray[cellCount++]=max_x;
                 verticesArray[cellCount++]=y_m+offset_y;
                 verticesArray[cellCount++]=0f;
 
-                verticesArray[cellCount++]=(left_x * -1f)+offset_x;
+                verticesArray[cellCount++]=max_x;
                 verticesArray[cellCount++]=y_m+offset_y;
                 verticesArray[cellCount++]= data[cellsLon_X-1][y];
 
@@ -290,16 +287,15 @@ public class GLTFDatafile {
             }
 
             //South enclosure
-            float bottom_y = min_y;
             //From right to left
             for (int x = cellsLon_X-1; x >= 0; x--) {
-                float x_m = ((float)x - ((float)(cellsLon_X-1) / 2)) * (float) cellWidth_LonMeters;
+                float x_m = ((float)x ) * (float) cellWidth_LonMeters;
                 verticesArray[cellCount++] = x_m+offset_x;
-                verticesArray[cellCount++] = bottom_y;
+                verticesArray[cellCount++] = min_y;
                 verticesArray[cellCount++] = 0f;
 
                 verticesArray[cellCount++] = x_m+offset_x;
-                verticesArray[cellCount++] = bottom_y;
+                verticesArray[cellCount++] = min_y;
                 verticesArray[cellCount++] = (float) data[x][cellsLat_Y-1];
 
                 if ((float) data[x][cellsLat_Y-1] > max_height) {
@@ -310,12 +306,12 @@ public class GLTFDatafile {
             //West enclosure
             //for (int y = 0; y < cellsLat_Y; y++) {
             for (int y = cellsLat_Y-1; y >=0; y--) {
-                float y_m = ((float)y - ((float)(cellsLat_Y-1) / 2)) * (float) cellWidth_LatMeters * -1.0f; //y-axis is flipped compared to array y-axis
-                verticesArray[cellCount++]=left_x+offset_x;
+                float y_m = ((float)y ) * (float) cellWidth_LatMeters * -1.0f; //y-axis is flipped compared to array y-axis
+                verticesArray[cellCount++]=min_x;
                 verticesArray[cellCount++]=y_m+offset_y;
                 verticesArray[cellCount++]=0f;
 
-                verticesArray[cellCount++]=left_x+offset_x;
+                verticesArray[cellCount++]=min_x;
                 verticesArray[cellCount++]=y_m+offset_y;
                 verticesArray[cellCount++]=(float) data[0][y];
 
@@ -350,18 +346,13 @@ public class GLTFDatafile {
             if (this.UVTexture == null)
                 this.UVTexture = new UvTexture(false, false);
 
-            //Indices
-            int indicesWidth = cellsLon_X;
-            int indicesHeight = cellsLat_Y;
-
-            int[] indices = new int[((indicesWidth-1)*(indicesHeight-1))*6];
+            int[] indices = new int[((cellsLon_X -1)*(cellsLat_Y -1))*6];
             int indicesCount = 0;
 
-
-            for (int x=1; x<indicesWidth; x++) {
-                for (int y=1; y<indicesHeight; y++) {
-                    int index = y * indicesWidth + x;
-                    int above_index = index - indicesWidth;
+            for (int x = 1; x< cellsLon_X; x++) {
+                for (int y = 1; y< cellsLat_Y; y++) {
+                    int index = y * cellsLon_X + x;
+                    int above_index = index - cellsLon_X;
                     int left_index = index - 1;
                     int across_index = above_index - 1;
                     indices[indicesCount++] = above_index;
@@ -378,22 +369,21 @@ public class GLTFDatafile {
             int verticesArraySize = ((cellsLat_Y) * (cellsLon_X))*3;
             float[] verticesArray = new float[verticesArraySize];
 
-
             int cellCount = 0;
 
-            max_y = ((((float)(cellsLat_Y-1) / 2f)) * (float) cellWidth_LatMeters)+offset_y;
-            min_x = ((((float)(cellsLon_X-1) / 2f)) * (float) cellWidth_LonMeters * -1)+offset_x;
+            max_y = offset_y;
+            min_y = (((float)(cellsLat_Y-1)) * (float) cellWidth_LatMeters * -1.0f)+offset_y;
+            min_x = offset_x;
             min_height = Float.MAX_VALUE;
             max_height = -1000;
-            min_y = ((((float)(cellsLat_Y-1) / 2f)) * (float) cellWidth_LatMeters * -1)+offset_y;
-            max_x = ((((float)(cellsLon_X-1) / 2f)) * (float) cellWidth_LonMeters)+offset_x;
+            max_x = (((float)(cellsLon_X-1)) * (float) cellWidth_LonMeters)+offset_x;
 
             for (int y = 0; y < cellsLat_Y; y++) {
 
-                float y_m = ((float)y - ((float)(cellsLat_Y-1) / 2f)) * (float) cellWidth_LatMeters * -1.0f; //y-axis is flipped compared to array y-axis
+                float y_m = ((float)y) * (float) cellWidth_LatMeters * -1.0f; //y-axis is flipped compared to array y-axis
 
                 for (int x = 0; x < cellsLon_X; x++) {
-                    float x_m = ((float)x - ((float)(cellsLon_X-1) / 2)) * (float) cellWidth_LonMeters;
+                    float x_m = ((float)x) * (float) cellWidth_LonMeters;
                     float height = data[x][y];
 
                     verticesArray[cellCount++]=x_m+offset_x;

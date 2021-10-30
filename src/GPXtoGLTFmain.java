@@ -31,7 +31,7 @@ public class GPXtoGLTFmain {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        File gpsTrack = new File("/home/rainer/Software_Dev/IdeaProjects/SunTopoStatic/GPXtesting/activity_2286936652.gpx");
+        File gpsTrack = new File("/home/rainer/Software_Dev/IdeaProjects/SunTopoStatic/GPXtesting/activity_2286936652.gpx"); //Montalin
         //File gpsTrack = new File("/home/rainer/Software_Dev/IdeaProjects/SunTopoStatic/GPXtesting/3581739.gpx");
         String directory_3DEM = "/home/rainer/Software_Dev/HGT/";
         HGTFileLoader_LocalStorage hgtFileLoader = new HGTFileLoader_LocalStorage(directory_3DEM);
@@ -45,12 +45,9 @@ public class GPXtoGLTFmain {
            Track reduced = GPXWorker.reduceTrackSegments(track, 2);
 
            LatLonBoundingBox boundingBox = GPXWorker.getTrueTrackBoundingBox(reduced);
-           System.out.println(boundingBox.toString());
-           int zoom = 13;
+           System.out.println("-Center of BoundingBox: "+boundingBox.getCenter().toString());
 
            /**MapTile tile = new MapTile(zoom, boundingBox.getCenter());
-
-
            URL url = new URL(formatURL(tile));
 
            Image image = null;

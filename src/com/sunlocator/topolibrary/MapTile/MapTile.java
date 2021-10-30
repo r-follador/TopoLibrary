@@ -52,10 +52,10 @@ public class MapTile {
     static final double r2d = 180 / Math.PI;
 
     public LatLonBoundingBox getBoundingBox() {
-        var e = tile2lon(x + 1, zoom);
-        var w = tile2lon(x, zoom);
-        var s = tile2lat(y + 1, zoom);
-        var n = tile2lat(y, zoom);
+        double e = tile2lon(x + 1, zoom);
+        double w = tile2lon(x, zoom);
+        double s = tile2lat(y + 1, zoom);
+        double n = tile2lat(y, zoom);
         return new LatLonBoundingBox(n,s,w,e);
     }
 
@@ -64,7 +64,7 @@ public class MapTile {
     }
 
     private static double tile2lat(int y, int zoom) {
-        var n = Math.PI - 2d * Math.PI * y / Math.pow(2d, zoom);
+        double n = Math.PI - 2d * Math.PI * y / Math.pow(2d, zoom);
         return r2d * Math.atan(0.5 * (Math.exp(n) - Math.exp(-n)));
     }
 
