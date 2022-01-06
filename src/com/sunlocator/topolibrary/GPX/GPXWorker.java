@@ -185,6 +185,7 @@ public class GPXWorker {
         int up = 0;
         int down = 0;
         long time = 0;
+        int dist = 0;
 
         int points = 0;
 
@@ -196,8 +197,14 @@ public class GPXWorker {
             points += segment.getPoints().size();
             for (int i=1; i<segment.getPoints().size(); i++) {
 
-                int ele = segment.getPoints().get(i).getElevation().get().intValue()-segment.getPoints().get(i-1).getElevation().get().intValue();
-                long timediff = ChronoUnit.SECONDS.between(segment.getPoints().get(i-1).getTime().get(), segment.getPoints().get(i).getTime().get());
+                WayPoint previousPoint = segment.getPoints().get(i-1);
+                WayPoint thisPoint = segment.getPoints().get(i);
+                LatLon thisLatLon = new LatLon(thisPoint.getLatitude().doubleValue(), thisPoint.getLongitude().doubleValue());
+                LatLon previousLatLon = new LatLon(previousPoint.getLatitude().doubleValue(), previousPoint.getLongitude().doubleValue());
+
+                int ele = thisPoint.getElevation().get().intValue()-previousPoint.getElevation().get().intValue();
+                dist += HGTWorker.distanceBetweenPoints(thisLatLon, previousLatLon);
+                long timediff = ChronoUnit.SECONDS.between(previousPoint.getTime().get(), thisPoint.getTime().get());
                 if (ele<0)
                     down -= ele;
                 else
@@ -211,12 +218,15 @@ public class GPXWorker {
         out.elevationUp = up;
         out.duration = (int)(time/60);
         out.points = points;
+        out.distance = dist;
         out.segments = track.getSegments().size();
 
         return out;
     }
 
     public static class TrackSummary {
+
+
         public int getElevationUp() {
             return elevationUp;
         }
@@ -257,6 +267,15 @@ public class GPXWorker {
             this.points = points;
         }
 
+        public int getDistance() {
+            return distance;
+        }
+
+        public void setDistance(int distance) {
+            this.distance = distance;
+        }
+
+        public int distance;
         public int elevationUp;
         public int elevationDown;
         public int duration;

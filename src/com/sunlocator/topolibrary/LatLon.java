@@ -27,6 +27,28 @@ public class LatLon {
         this.Lat = Lat;
         this.Lon = Lon;
     }
+
+    /**
+     * Calculate distance in meters between this LatLon to that LatLon using haversine formula (https://en.wikipedia.org/wiki/Haversine_formula)
+     * @param that
+     * @return distance in meters
+     */
+    public double calculateEuclidianDistance(LatLon that) {
+        double dLat  = Math.toRadians((this.Lat - that.Lat));
+        double dLong = Math.toRadians((this.Lon - that.Lon));
+
+        double startLat = Math.toRadians(that.Lat);
+        double endLat   = Math.toRadians(this.Lat);
+
+        double a = haversin(dLat) + Math.cos(startLat) * Math.cos(endLat) * haversin(dLong);
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+        return HGTWorker.RadiusOfEarth * c; // <-- d
+    }
+
+    private static double haversin(double val) {
+        return Math.pow(Math.sin(val / 2), 2);
+    }
     
     public double getLatitude() {
         return Lat;

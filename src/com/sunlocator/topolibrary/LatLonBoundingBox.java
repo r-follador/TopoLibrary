@@ -42,6 +42,15 @@ public class LatLonBoundingBox {
         E_Bound = center.Lon+lon_diff;
         setWidths();
     }
+
+    public LatLonBoundingBox addPadding(int meters) {
+        double newNbound = N_Bound + HGTWorker.distance2degrees_latitude(meters);
+        double newSbound = S_Bound - HGTWorker.distance2degrees_latitude(meters);
+        double newWbound = W_Bound - HGTWorker.distance2degrees_longitude(meters, getCenter().Lat);
+        double newEbound = E_Bound + HGTWorker.distance2degrees_longitude(meters, getCenter().Lat);
+
+        return new LatLonBoundingBox(newNbound, newSbound, newWbound, newEbound);
+    }
     
     private void setWidths() {
         widthLatDegree = N_Bound - S_Bound;

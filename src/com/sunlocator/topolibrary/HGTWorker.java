@@ -85,6 +85,17 @@ public class HGTWorker {
         return dist / lengthOfDegreeLongitude(lat);
     }
 
+
+    /**
+     * Calculate distance in meters between two LatLon points using haversine formula (https://en.wikipedia.org/wiki/Haversine_formula)
+     * @param thisPoint
+     * @param thatPoint
+     * @return
+     */
+    public static double distanceBetweenPoints(LatLon thisPoint, LatLon thatPoint) {
+        return thisPoint.calculateEuclidianDistance(thatPoint);
+    }
+
     /**
      * Load 3DEM file
      * 3DEM Rules:
@@ -776,6 +787,9 @@ public class HGTWorker {
                 boolean enclosementNeeded =  enclosement && (x==0 || x == width-1 || y==0 || y==height-1);
 
                 GLTFDatafile.GLTFMesh mesh = gltfFile.addGLTFMesh(data, lonCellNumber, latCellNumber, cellWidth_LatMeters, cellWidth_LonMeters, enclosementNeeded, offset_x, offset_y, UVTexture, enclosementTexture);
+                mesh.metadata.put("Tile_Z", String.valueOf(mtiles[x][y].zoom));
+                mesh.metadata.put("Tile_X", String.valueOf(mtiles[x][y].x));
+                mesh.metadata.put("Tile_Y", String.valueOf(mtiles[x][y].y));
                 mesh.metadata.put("NBound", String.valueOf(tileBbox.getN_Bound()));
                 mesh.metadata.put("SBound", String.valueOf(tileBbox.getS_Bound()));
                 mesh.metadata.put("WBound", String.valueOf(tileBbox.getW_Bound()));
