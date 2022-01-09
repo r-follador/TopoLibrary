@@ -22,12 +22,24 @@ public class GPXWorker {
         return GPX.read(inputStream).getTracks();
     }
 
+    public static List<Track> loadFitTracks(InputStream inputStream) throws IOException {
+        return Converter.loadFitTracks(new BufferedInputStream(inputStream));
+    }
+
     public static List<Track> loadGPXTracks(File f) throws IOException {
         FileInputStream fis = new FileInputStream(f);
         List<Track> trackList = loadGPXTracks(fis);
         fis.close();
         return trackList;
     }
+
+    public static List<Track> loadFitTracks(File f) throws IOException {
+        FileInputStream fis = new FileInputStream(f);
+        List<Track> trackList = loadFitTracks(fis);
+        fis.close();
+        return trackList;
+    }
+
 
     /**
      * The actual bounding box of a track
@@ -281,6 +293,13 @@ public class GPXWorker {
         public int duration;
         public int segments;
         public int points;
+
+        public String toString() {
+            return "Distance: "+distance + " m \n"+
+                    "Elevation Up/Down: "+ elevationUp +"m / "+elevationDown +"m \n" +
+                    "Duration: "+duration+"min \n"+
+                    "Total Segments/Points: "+segments+"/"+points;
+        }
     }
 
     public static void getHeight(Track track, HGTFileLoader hgtFileLoader_1DEM) throws IOException {

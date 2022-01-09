@@ -1,5 +1,5 @@
 plugins {
-    id 'java'
+    id 'java-library'
 }
 
 group 'com.sunlocator'
@@ -17,8 +17,21 @@ sourceSets {
     }
 }
 
+configurations {
+    // configuration that holds jars to include in the jar
+    extraLibs
+}
+
 dependencies {
     compile 'junit:junit:4.13.2'
-    //implementation 'io.jenetics:jpx:2.0.0'
-    implementation group: 'io.jenetics', name: 'jpx', version: '2.3.0'
+    implementation 'io.jenetics:jpx:2.3.0'
+    //implementation fileTree(dir: 'libs', include: 'fit.jar')
+    extraLibs fileTree(dir: 'libs', include: 'fit.jar')
+    configurations.compile.extendsFrom(configurations.extraLibs)
+}
+
+jar {
+    from {
+        configurations.extraLibs.collect { it.isDirectory() ? it : zipTree(it) }
+    }
 }
