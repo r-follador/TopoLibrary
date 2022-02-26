@@ -159,7 +159,7 @@ public class HGTWorker {
      * @param position
      * @return
      */
-    private static String getFileName_3DEM(LatLon position) {
+    public static String getFileName_3DEM(LatLon position) {
         int lat_floored = (int) Math.floor(position.Lat);
         boolean isNorth = lat_floored >= 0;
         int lon_floored = (int) Math.floor(position.Lon);
@@ -173,7 +173,7 @@ public class HGTWorker {
      * @param position
      * @return
      */
-    private static String getFileName_1DEM(LatLon position) {
+    public static String getFileName_1DEM(LatLon position) {
         return getFileName_3DEM(position);
     }
 
@@ -359,8 +359,8 @@ public class HGTWorker {
 
         short[][] data = load_1DEM(topLeftLatLon, cells_x_lon, cells_y_lat, hgtFileLoader_1DEM);
 
-        throw new UnsupportedOperationException(); //NOT done yet
-        //return new HGTDatafile(bounds, data, HGTDatafile.HGT_Type.DEM1);
+        //throw new UnsupportedOperationException(); //NOT done yet
+        return new HGTDatafile(bounds, data, HGTDatafile.HGT_Type.DEM1);
     }
 
     @Deprecated

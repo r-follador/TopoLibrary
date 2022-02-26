@@ -46,7 +46,9 @@ class Converter {
     private static final HashMap<String, String> connect_iq_fields = new HashMap<>(); // field name, units
     private final TreeMap<String, Map<String, String>> Buffer = new TreeMap<>(); // buffer for read full info as "key = set of (field = value)" - all data to CSV, GPX
     private final SimpleDateFormat ISODateFormatCSV = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");  // формат вывода в csv ISO/ГОСТ
-    List<Track> activity2 = new ArrayList<>();
+    List<Track> activityList = new ArrayList<>();
+    String sportType = "";
+    String subsportType = "";
     private long TimeStamp;
     private final SimpleDateFormat DateFormatCSV = ISODateFormatCSV;
     private BufferedInputStream InputStream;
@@ -54,11 +56,15 @@ class Converter {
     private long StartTime;
     private boolean StartTimeFlag = false;
 
-    protected static List<Track> loadFitTracks(BufferedInputStream is) throws IOException {
+    protected static GPXWorker.ConversionOutput loadFitTracks(BufferedInputStream is) throws IOException {
         Converter converter = new Converter();
         converter.setFITInputStream(is);
         converter.run();
-        return converter.getListTrack();
+
+        GPXWorker.ConversionOutput output = new GPXWorker.ConversionOutput(converter.getListTrack());
+        output.sportString = converter.sportType;
+        output.subsportString = converter.subsportType;
+        return output;
     }
 
     private static String append(Object obj, String string) {
@@ -102,7 +108,7 @@ class Converter {
     }
 
     private List<Track> getListTrack() {
-        return activity2;
+        return activityList;
     }
 
     void setFITInputStream(BufferedInputStream inputStream) {
@@ -418,6 +424,14 @@ class Converter {
         };
 
         MesgListener mesgListener = mesg -> {
+            if (mesg.getName().equals("session")) {
+                if (mesg.getFieldShortValue("sport") != null) {
+                    sportType = Sport.getStringFromValue(Sport.getByValue(mesg.getFieldShortValue("sport")));
+                } else if (mesg.getFieldShortValue("sub_sport") != null) {
+                    subsportType = Sport.getStringFromValue(Sport.getByValue(mesg.getFieldShortValue("sub_sport")));
+                }
+            }
+
             if (mesg.getFieldStringValue("timestamp") != null && mesg.getName().equals("record")) {
 
                 Map<String, String> fields = new HashMap<>();
@@ -565,7 +579,7 @@ class Converter {
             activitySegmentBuilder.addPoint(wp.build());
         }
         activityTrackBuilder.addSegment(activitySegmentBuilder.build());
-        activity2.add(activityTrackBuilder.build());
+        activityList.add(activityTrackBuilder.build());
     }
 
 }

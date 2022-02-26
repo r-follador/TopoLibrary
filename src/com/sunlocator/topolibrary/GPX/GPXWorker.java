@@ -12,32 +12,42 @@ import java.io.*;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class GPXWorker {
 
     //Based on https://github.com/jenetics/jpx
 
-    public static List<Track> loadGPXTracks(InputStream inputStream) throws IOException {
-        return GPX.read(inputStream).getTracks();
+    public static ConversionOutput loadGPXTracks(InputStream inputStream) throws IOException {
+        return new ConversionOutput(GPX.read(inputStream).getTracks());
     }
 
-    public static List<Track> loadFitTracks(InputStream inputStream) throws IOException {
+    public static ConversionOutput loadFitTracks(InputStream inputStream) throws IOException {
         return Converter.loadFitTracks(new BufferedInputStream(inputStream));
     }
 
-    public static List<Track> loadGPXTracks(File f) throws IOException {
+    public static ConversionOutput loadGPXTracks(File f) throws IOException {
         FileInputStream fis = new FileInputStream(f);
-        List<Track> trackList = loadGPXTracks(fis);
+        ConversionOutput trackList = loadGPXTracks(fis);
         fis.close();
         return trackList;
     }
 
-    public static List<Track> loadFitTracks(File f) throws IOException {
+    public static ConversionOutput loadFitTracks(File f) throws IOException {
         FileInputStream fis = new FileInputStream(f);
-        List<Track> trackList = loadFitTracks(fis);
+        ConversionOutput trackList = loadFitTracks(fis);
         fis.close();
         return trackList;
+    }
+
+    public static class ConversionOutput {
+        public ConversionOutput(List<Track> t) {
+            this.trackList = t;
+        }
+        public List<Track> trackList = null;
+        public String sportString = "";
+        public String subsportString = "";
     }
 
 
@@ -198,6 +208,8 @@ public class GPXWorker {
         int down = 0;
         long time = 0;
         int dist = 0;
+        int highestpoint = -400000;
+        int lowestpoint = 400000;
 
         int points = 0;
 
@@ -215,6 +227,10 @@ public class GPXWorker {
                 LatLon previousLatLon = new LatLon(previousPoint.getLatitude().doubleValue(), previousPoint.getLongitude().doubleValue());
 
                 int ele = thisPoint.getElevation().get().intValue()-previousPoint.getElevation().get().intValue();
+                if (thisPoint.getElevation().get().intValue() > highestpoint)
+                    highestpoint = thisPoint.getElevation().get().intValue();
+                if (thisPoint.getElevation().get().intValue() < lowestpoint)
+                    lowestpoint = thisPoint.getElevation().get().intValue();
                 dist += HGTWorker.distanceBetweenPoints(thisLatLon, previousLatLon);
                 long timediff = ChronoUnit.SECONDS.between(previousPoint.getTime().get(), thisPoint.getTime().get());
                 if (ele<0)
@@ -232,6 +248,8 @@ public class GPXWorker {
         out.points = points;
         out.distance = dist;
         out.segments = track.getSegments().size();
+        out.highestpointEle = highestpoint;
+        out.lowestpointEle = lowestpoint;
 
         return out;
     }
@@ -287,48 +305,218 @@ public class GPXWorker {
             this.distance = distance;
         }
 
+        public int getHighestpointEle() {
+            return highestpointEle;
+        }
+
+        public void setHighestpointEle(int highestpointEle) {
+            this.highestpointEle = highestpointEle;
+        }
+
+        public int getLowestpointEle() {
+            return lowestpointEle;
+        }
+
+        public void setLowestpointEle(int lowestpointEle) {
+            this.lowestpointEle = lowestpointEle;
+        }
+
         public int distance;
         public int elevationUp;
         public int elevationDown;
         public int duration;
         public int segments;
         public int points;
+        public int highestpointEle;
+        public int lowestpointEle;
 
         public String toString() {
             return "Distance: "+distance + " m \n"+
                     "Elevation Up/Down: "+ elevationUp +"m / "+elevationDown +"m \n" +
                     "Duration: "+duration+"min \n"+
-                    "Total Segments/Points: "+segments+"/"+points;
+                    "Total Segments/Points: "+segments+"/"+points + "\n"+
+                    "Highest/Lowest Elevation: "+highestpointEle + "m /" + lowestpointEle + "m";
         }
     }
 
-    public static void getHeight(Track track, HGTFileLoader hgtFileLoader_1DEM) throws IOException {
-        //TODO: cannot be used yet, only print out
-        LatLonBoundingBox latLonBoundingBox = getTrueTrackBoundingBox(track);
-        latLonBoundingBox = new LatLonBoundingBox(latLonBoundingBox.getN_Bound(), latLonBoundingBox.getS_Bound()-HGTDatafile.DEM1_cellWidth_LatDegree, latLonBoundingBox.getW_Bound(), latLonBoundingBox.getE_Bound()+HGTDatafile.DEM1_cellWidth_LonDegree);
-        HGTDatafile hgtDatafile = HGTWorker.loadFromBoundingBox_1DEM(latLonBoundingBox, hgtFileLoader_1DEM);
-        System.out.println(hgtDatafile.toString());
-
-        for (TrackSegment segment : track.getSegments()) {
-            for (Point trackPoint : segment.getPoints()) {
-                int x=(int)((trackPoint.getLongitude().doubleValue()-hgtDatafile.bounds.getW_Bound())/hgtDatafile.cellWidth_LonDegree);
-                int y=(int)((hgtDatafile.bounds.getN_Bound()-trackPoint.getLatitude().doubleValue())/hgtDatafile.cellWidth_LatDegree);
-                short h = hgtDatafile.getData()[x][y];
-
-                short gps_h = trackPoint.getElevation().orElse(null).shortValue();
-                System.out.println(gps_h +"\t"+h + "\t"+(gps_h-h)+"\t\t"+trackPoint.getLatitude().doubleValue()+"/"+trackPoint.getLongitude().doubleValue());
-
+    /**
+     * Replaces the elevation data of track with newElevationData
+     * @param track
+     * @param newElevationData
+     */
+    public static Track replaceElevationData(Track track, ArrayList<short[]> newElevationData) {
+        Track.Builder tb = Track.builder();
+        if (track.getSegments().size()!= newElevationData.size())
+            throw new RuntimeException("newElevationData has different dimensions than track");
+        TrackSegment.Builder tsb = TrackSegment.builder();
+        for (int i=0; i<track.getSegments().size(); i++) {
+            if (track.getSegments().get(i).getPoints().size()!= newElevationData.get(i).length)
+                throw new RuntimeException("newElevationData has different dimensions than track");
+            for (int j=0; j<track.getSegments().get(i).getPoints().size(); j++) {
+                WayPoint wp = track.getSegments().get(i).getPoints().get(j);
+                WayPoint np = WayPoint.of(wp.getLatitude(), wp.getLongitude(), Length.of(newElevationData.get(i)[j], Length.Unit.METER), wp.getTime().get());
+                tsb.addPoint(np);
             }
         }
+        return tb.addSegment(tsb.build()).build();
     }
 
-    public static short getHeight(LatLon latLon, HGTFileLoader hgtFileLoader_1DEM) throws IOException {
-        HGTDatafile hgtDatafile = HGTWorker.loadHGTFile_1DEM(latLon, hgtFileLoader_1DEM);
+    public static ArrayList<short[]> getElevationDataAsArray(Track track) {
+        ArrayList<short[]> output = new ArrayList<>();
 
+        for (TrackSegment segment : track.getSegments()) {
+            short[] out = new short[segment.getPoints().size()];
+
+            for (int i=0;i<segment.getPoints().size();i++) {
+                out[i] = segment.getPoints().get(i).getElevation().get().shortValue();
+            }
+            output.add(out);
+        }
+        return output;
+    }
+
+    /**
+     * Subtract the difference of the means between gpsEle and modelEle form gpsEle
+     * @param gpsEle
+     * @param modelEle
+     * @return
+     */
+    public static ArrayList<short[]> normalizeElevationData(ArrayList<short[]> gpsEle, ArrayList<short[]> modelEle) {
+        ArrayList<short[]> output = new ArrayList<>();
+
+        if (gpsEle.size() != modelEle.size())
+            throw new RuntimeException("gpsEle list has different dimensions than modelEle list");
+
+        for (int i = 0; i<gpsEle.size();  i++) {
+            if (gpsEle.get(i).length != modelEle.get(i).length)
+                throw new RuntimeException("gpsEle list has different dimensions than modelEle list");
+
+            output.add(addNumberToArray(gpsEle.get(i), (getMean(modelEle.get(i))-getMean(gpsEle.get(i)))));
+        }
+        return output;
+    }
+
+    /**
+     * Normalize elevation data of track by minimizing the mean of the track elevations to the mean of the DEM data elevations.
+     * @param track
+     * @param hgtFileLoader_1DEM
+     * @param hgtFileLoader_3DEM
+     * @throws IOException
+     */
+    public static Track normalizeElevationData(Track track, HGTFileLoader hgtFileLoader_1DEM, HGTFileLoader hgtFileLoader_3DEM) throws IOException {
+        ArrayList<short[]> modelEle = getElevationDataFromHGT(track, hgtFileLoader_1DEM, hgtFileLoader_3DEM);
+        ArrayList<short[]> gpsEle = getElevationDataAsArray(track);
+
+        return replaceElevationData(track, normalizeElevationData(gpsEle, modelEle));
+    }
+
+    /**
+     * Replace elevation data of track by DEM elevation data
+     * @param track
+     * @param hgtFileLoader_1DEM
+     * @param hgtFileLoader_3DEM
+     * @throws IOException
+     */
+    public static Track replaceElevationData(Track track, HGTFileLoader hgtFileLoader_1DEM, HGTFileLoader hgtFileLoader_3DEM) throws IOException {
+        ArrayList<short[]> modelEle = getElevationDataFromHGT(track, hgtFileLoader_1DEM, hgtFileLoader_3DEM);
+
+        return replaceElevationData(track, modelEle);
+    }
+
+    private static short getMean(short[] data) {
+        long sum = 0L;
+        for (short datum : data) {
+            sum += datum;
+        }
+        return (short)(sum/data.length);
+    }
+
+    private static short[] addNumberToArray(short[] data, int toAdd) {
+        short[] output = new short[data.length];
+        for (int i=0; i<data.length; i++) {
+            output[i] = (short)(data[i]+toAdd);
+        }
+        return output;
+    }
+
+
+    final static short nonInit = (short)-2222;
+
+    /**
+     * Returns the elevation data based on the 1DEM HGT file for every point in a Track.
+     * The arraylist contains a short[] array for every tracksegment.
+     * @param track
+     * @param hgtFileLoader_1DEM
+     * @param hgtFileLoader_3DEM
+     * @return
+     * @throws IOException
+     */
+    public static ArrayList<short[]> getElevationDataFromHGT(Track track, HGTFileLoader hgtFileLoader_1DEM, HGTFileLoader hgtFileLoader_3DEM) throws IOException {
+        String hgtDatafile_3DEM_name = "";
+        HGTDatafile hgtDatafile_3DEM = null;
+        String hgtDatafile_1DEM_name = "";
+        HGTDatafile hgtDatafile_1DEM = null;
+
+        ArrayList<short[]> output = new ArrayList<>();
+
+        for (TrackSegment segment : track.getSegments()) {
+            short[] out = new short[segment.getPoints().size()];
+            Arrays.fill(out, nonInit);
+            int index=-1;
+            while((index=getNonInitIndex(out))!=-1) {
+                LatLon latLon = new LatLon(segment.getPoints().get(index).getLatitude().doubleValue(), segment.getPoints().get(index).getLongitude().doubleValue());
+
+                //if matching hgtDatafile is not loaded, try to load first 1DEM; if not available 3DEM
+                if (!HGTWorker.getFileName_1DEM(latLon).equals(hgtDatafile_1DEM_name) && !HGTWorker.getFileName_3DEM(latLon).equals(hgtDatafile_3DEM_name)) {
+                    try {
+                        hgtDatafile_1DEM = HGTWorker.loadHGTFile_1DEM(latLon, hgtFileLoader_1DEM);
+                        hgtDatafile_1DEM_name = HGTWorker.getFileName_1DEM(latLon);
+                    } catch (FileNotFoundException e) {
+                        hgtDatafile_3DEM = HGTWorker.loadHGTFile_3DEM(latLon, hgtFileLoader_3DEM);
+                        hgtDatafile_3DEM_name = HGTWorker.getFileName_3DEM(latLon);
+                    }
+                }
+
+                boolean loaded1DEM = false;
+
+                if (HGTWorker.getFileName_1DEM(latLon).equals(hgtDatafile_1DEM_name)) {
+                    out[index]=getEleAtPoint(hgtDatafile_1DEM, latLon);
+                    loaded1DEM = true;
+                } else if (HGTWorker.getFileName_3DEM(latLon).equals(hgtDatafile_3DEM_name)) {
+                    out[index]=getEleAtPoint(hgtDatafile_3DEM, latLon);
+                }
+
+                //check if any other points can be queried from the same hgtfile; prevent too many open/close operations
+                for (int i=index+1; i<out.length; i++) {
+                    LatLon latLon2 = new LatLon(segment.getPoints().get(i).getLatitude().doubleValue(), segment.getPoints().get(i).getLongitude().doubleValue());
+                    if ((loaded1DEM && HGTWorker.getFileName_1DEM(latLon2).equals(hgtDatafile_1DEM_name)) || HGTWorker.getFileName_3DEM(latLon2).equals(hgtDatafile_3DEM_name)) {
+                        out[i] = getEleAtPoint((loaded1DEM ? hgtDatafile_1DEM : hgtDatafile_3DEM), latLon2);
+                    }
+                }
+            }
+            output.add(out);
+        }
+
+        return output;
+    }
+
+    private static int getNonInitIndex(short[] shortArray) {
+        for (int i=0; i<shortArray.length; i++) {
+            if (shortArray[i]==nonInit)
+                return i;
+        }
+        return -1;
+    }
+
+    private static short getEleAtPoint(HGTDatafile hgtDatafile, LatLon latLon) {
         int x=(int)((latLon.getLongitude()-hgtDatafile.bounds.getW_Bound())/hgtDatafile.cellWidth_LonDegree);
         int y=(int)((hgtDatafile.bounds.getN_Bound()-latLon.getLatitude())/hgtDatafile.cellWidth_LatDegree);
-
         return hgtDatafile.getData()[x][y];
+    }
+
+    public static short getElevationDataFromHGT(LatLon latLon, HGTFileLoader hgtFileLoader_1DEM) throws IOException {
+        HGTDatafile hgtDatafile = HGTWorker.loadHGTFile_1DEM(latLon, hgtFileLoader_1DEM);
+        return getEleAtPoint(hgtDatafile, latLon);
     }
 
 }

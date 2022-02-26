@@ -30,7 +30,10 @@ public class FITmain {
        try {
            System.out.println("Start loading FIT");
            long start = System.currentTimeMillis();
-           List<Track> trackList = GPXWorker.loadFitTracks(fitTrack);
+           GPXWorker.ConversionOutput conversionOutput = GPXWorker.loadFitTracks(fitTrack);
+           List<Track> trackList = conversionOutput.trackList;
+
+           System.out.println("Type/Subtype: " + conversionOutput.sportString + " "+conversionOutput.subsportString);
 
 
            //Track track = GPXWorker.loadFitTracks(fitTrack).get(0);

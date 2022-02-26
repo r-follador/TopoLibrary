@@ -35,7 +35,7 @@ public class GPXmain {
        try {
            System.out.println("Start loading");
            long start = System.currentTimeMillis();
-           Track track = GPXWorker.loadGPXTracks(gpsTrack).get(0);
+           Track track = GPXWorker.loadGPXTracks(gpsTrack).trackList.get(0);
            System.out.println("Load time: "+(System.currentTimeMillis()-start)+" ms");
            System.out.println("Points: "+track.getSegments().get(0).getPoints().size());
            //BufferedImage map = GPXWorker.getMapPng(track);
