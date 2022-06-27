@@ -36,7 +36,11 @@ public class MapTileWorker {
         } else {
             throw new UnsupportedOperationException("MapTile Arrays spanning the dateline not yet supported.");
         }
+    }
 
+    public static int calculateRequiredTilesFromBoundingBox(LatLonBoundingBox bbox, int zoom) {
+        MapTile[][] mapTiles = getTilesFromBoundingBox(bbox, zoom);
+        return (mapTiles.length*mapTiles[0].length);
     }
 
     public static Image stitchMaptiles(LatLonBoundingBox bbox, int width) {

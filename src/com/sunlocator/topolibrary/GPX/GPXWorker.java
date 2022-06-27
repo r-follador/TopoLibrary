@@ -207,7 +207,7 @@ public class GPXWorker {
         int up = 0;
         int down = 0;
         long time = 0;
-        int dist = 0;
+        double dist = 0;
         int highestpoint = -400000;
         int lowestpoint = 400000;
 
@@ -246,7 +246,7 @@ public class GPXWorker {
         out.elevationUp = up;
         out.duration = (int)(time/60);
         out.points = points;
-        out.distance = dist;
+        out.distance = (int)dist;
         out.segments = track.getSegments().size();
         out.highestpointEle = highestpoint;
         out.lowestpointEle = lowestpoint;

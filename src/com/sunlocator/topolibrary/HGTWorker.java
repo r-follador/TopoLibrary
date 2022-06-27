@@ -748,29 +748,38 @@ public class HGTWorker {
             for (int y=0; y<height; y++) {
 
                 LatLonBoundingBox tileBbox = mtiles[x][y].getBoundingBox();
-                //System.out.println(tileBbox.toString());
+                //System.out.println(mtiles[x][y]);
 
-                int lonCellNumber = (int)Math.ceil(tileBbox.widthLonDegree*(double) HGTDatafile.DEM3_cells_per_row);
                 int start_x_topleft = (int)((tileBbox.getW_Bound()-Math.floor(tileBbox.getW_Bound()))*(double) HGTDatafile.DEM3_cells_per_row);
+                //System.out.println("start_x_topleft: "+start_x_topleft);
                 int start_x_bottomright = (int)((tileBbox.getE_Bound()-Math.floor(tileBbox.getE_Bound()))*(double) HGTDatafile.DEM3_cells_per_row);
-                lonCellNumber = Math.abs(start_x_topleft-start_x_bottomright)+1;
+                //System.out.println("start_x_bottomright: "+start_x_bottomright);
+                int lonCellNumber;
+                if (Math.floor(tileBbox.getW_Bound()) == Math.floor(tileBbox.getE_Bound()))
+                    lonCellNumber = start_x_bottomright - start_x_topleft + 1;
+                else //spanning two DEM files
+                    lonCellNumber = (start_x_bottomright)+(HGTDatafile.DEM3_cells_per_row-start_x_topleft)+(((int)Math.floor(tileBbox.getE_Bound()-(int)Math.floor(tileBbox.getW_Bound()))-1)*HGTDatafile.DEM1_cells_per_row);
 
-                int latCellNumber = (int)Math.ceil(tileBbox.widthLatDegree*(double) HGTDatafile.DEM3_cells_per_row);
+                //System.out.println("lonCellNumber: "+lonCellNumber);
+
                 int start_y_topleft = (int)((Math.ceil(tileBbox.getN_Bound())-tileBbox.getN_Bound())*(double) HGTDatafile.DEM3_cells_per_row);
+                //System.out.println("start_y_topleft: "+start_y_topleft);
                 int start_y_bottomright = (int)((Math.ceil(tileBbox.getS_Bound())-tileBbox.getS_Bound())*(double) HGTDatafile.DEM3_cells_per_row);
-                latCellNumber = Math.abs(start_y_topleft-start_y_bottomright)+1;
+                //System.out.println("start_y_bottomright: "+start_y_bottomright);
+                int latCellNumber;
 
-                //double cellWidth_LatMeters = HGTWorker.lengthOfDegreeLatitude()/(double)HGTDatafile.DEM3_cells_per_row;
-                //double cellWidth_LonMeters = HGTWorker.lengthOfDegreeLongitude(center.getLatitude())/(double)HGTDatafile.DEM3_cells_per_row;
+                if (Math.ceil(tileBbox.getN_Bound()) == Math.ceil(tileBbox.getS_Bound()))
+                    latCellNumber = start_y_bottomright - start_y_topleft + 1;
+                else //spanning two DEM files
+                    latCellNumber = (start_y_bottomright)+(HGTDatafile.DEM3_cells_per_row-start_y_topleft)+((int)Math.ceil(tileBbox.getN_Bound()-(int)Math.ceil(tileBbox.getS_Bound()))-1)*HGTDatafile.DEM1_cells_per_row;
+
+                //System.out.println("latCellNumber: "+latCellNumber);
 
                 double cellWidth_LatMeters = HGTWorker.degrees2distance_latitude(tileBbox.getWidthLatDegree())/(double)(latCellNumber-1);
                 double cellWidth_LonMeters = HGTWorker.degrees2distance_longitude(tileBbox.getWidthLonDegree(), center.getLatitude())/(double)(lonCellNumber-1);
 
                 float offset_x = (float)HGTWorker.degrees2distance_longitude(tileBbox.getTopLeft().getLongitude()-center.getLongitude(), center.getLatitude());
                 float offset_y = (float)HGTWorker.degrees2distance_latitude(tileBbox.getTopLeft().getLatitude()-center.getLatitude());
-
-                //float offset_x = 0;
-                //float offset_y = 0;
 
                 short[][] data = load_3DEM(tileBbox.getTopLeft(), lonCellNumber, latCellNumber, 0,0, hgtFileLoader);
 
@@ -787,6 +796,13 @@ public class HGTWorker {
                 boolean enclosementNeeded =  enclosement && (x==0 || x == width-1 || y==0 || y==height-1);
 
                 GLTFDatafile.GLTFMesh mesh = gltfFile.addGLTFMesh(data, lonCellNumber, latCellNumber, cellWidth_LatMeters, cellWidth_LonMeters, enclosementNeeded, offset_x, offset_y, UVTexture, enclosementTexture);
+                /**System.out.println("lonCellNumer: "+ lonCellNumber);
+                System.out.println("latCellNumber: "+ latCellNumber);
+                System.out.println("cellWidth_LatMeters: "+ cellWidth_LatMeters);
+                System.out.println("cellWidth_LonMeters: "+ cellWidth_LonMeters);
+                System.out.println("offset_x: "+ offset_x);
+                System.out.println("offset_y: "+ offset_y);**/
+
                 mesh.metadata.put("Tile_Z", String.valueOf(mtiles[x][y].zoom));
                 mesh.metadata.put("Tile_X", String.valueOf(mtiles[x][y].x));
                 mesh.metadata.put("Tile_Y", String.valueOf(mtiles[x][y].y));

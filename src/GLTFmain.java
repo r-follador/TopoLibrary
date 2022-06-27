@@ -6,6 +6,7 @@
 
 
 import com.sunlocator.topolibrary.*;
+import com.sunlocator.topolibrary.MapTile.MapTileWorker;
 
 import java.awt.image.BufferedImage;
 import java.io.IOException;
@@ -23,14 +24,13 @@ public class GLTFmain {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        //LatLon latlon = new LatLon(46.86365, 9.59043);
-        LatLon latlon = new LatLon(	51.1056, -115.3573);
-        LatLonBoundingBox boundingBox = new LatLonBoundingBox(latlon, 20000);
-       
-       
-       try {
+        LatLonBoundingBox boundingBox = new LatLonBoundingBox(46.01,45.96, 6.96, 7.01);
+
+        LatLonBoundingBox boundingBox_problem = new LatLonBoundingBox( 46.33175800051563, 46.331, 6.9873046875, 7);
+
+        try {
             String directory = "/home/rainer/Software_Dev/HGT/";
-            HGTFileLoader_LocalStorage hgtFileLoader = new HGTFileLoader_LocalStorage(directory);
+            HGTFileLoader_LocalStorage hgtFileLoader_3DEM = new HGTFileLoader_LocalStorage(directory);
 
            
            
@@ -42,15 +42,24 @@ public class GLTFmain {
 
            //LOD
 
-            GLTFDatafile gltfFile = HGTWorker.getLODGLTF_3DEM(boundingBox, hgtFileLoader);
+            GLTFDatafile gltfFile_problem = HGTWorker.getTileGLTF_3DEM(boundingBox, calculateZoomlevel(boundingBox), false, hgtFileLoader_3DEM, null);
+
+            //GLTFDatafile gltfDatafile = HGTWorker.getLODGLTF_3DEM(boundingBox, hgtFileLoader_3DEM);
 
 
-            PrintWriter out3 = new PrintWriter("/home/rainer/Software_Dev/IdeaProjects/SunTopoStatic/terrain_LOD.gltf");
-            out3.print(gltfFile.getString());
-            out3.close();
 
-           BufferedImage map_old = MapWorker.getMapPng(boundingBox);
-           MapWorker.resizeAndwriteImageToFile(1024, map_old, "/home/rainer/Software_Dev/IdeaProjects/SunTopoStatic/terrain.map_old.png");
+
+
+            //PrintWriter out3 = new PrintWriter("/home/rainer/Software_Dev/IdeaProjects/SunTopoStatic/problem_2.gltf");
+            //out3.print(gltfDatafile.getString());
+            //out3.close();
+
+            PrintWriter out3_problem = new PrintWriter("/home/rainer/Software_Dev/IdeaProjects/SunTopoStatic/problem.gltf");
+            out3_problem.print(gltfFile_problem.getString());
+            out3_problem.close();
+
+           //BufferedImage map_old = MapWorker.getMapPng(boundingBox);
+           //MapWorker.resizeAndwriteImageToFile(1024, map_old, "/home/rainer/Software_Dev/IdeaProjects/SunTopoStatic/terrain.map_old.png");
 
            //not LOD
 /**
@@ -67,5 +76,13 @@ public class GLTFmain {
        } catch (IOException e) {
            System.err.println(e);
        }
+    }
+
+    public static int calculateZoomlevel(LatLonBoundingBox boundingBox) {
+        int zoom = 14;
+        while (MapTileWorker.calculateRequiredTilesFromBoundingBox(boundingBox, zoom) > 48) {
+            zoom--;
+        }
+        return zoom;
     }
 }
