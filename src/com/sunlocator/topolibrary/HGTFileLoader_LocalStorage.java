@@ -17,9 +17,11 @@ public class HGTFileLoader_LocalStorage implements HGTFileLoader {
 
         short[][] heightmap = new short[cellsPerRow][cellsPerRow]; //signed short max 32767
 
+        //System.out.println("@@@ - "+directory + filename);
+
         File f = new File(directory+filename);
         if (!f.exists()) {
-            throw new FileNotFoundException(filename);
+            throw new FileNotFoundException(directory+filename);
         }
 
         InputStream is = new FileInputStream(f);

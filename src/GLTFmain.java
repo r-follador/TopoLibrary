@@ -24,12 +24,13 @@ public class GLTFmain {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        LatLonBoundingBox boundingBox = new LatLonBoundingBox(46.01,45.96, 6.96, 7.01);
+        LatLonBoundingBox boundingBox = new LatLonBoundingBox(new LatLon(13.4506574,144.5086325), 3000);
 
         LatLonBoundingBox boundingBox_problem = new LatLonBoundingBox( 46.33175800051563, 46.331, 6.9873046875, 7);
 
         try {
-            String directory = "/home/rainer/Software_Dev/HGT/";
+            //String directory = "/home/rainer/Software_Dev/HGT/";
+            String directory = "/home/rainer/temp_sshftps/tmp_dem-data/Mapzen_3DEM/"; //sshfs rainer@private.genewarrior.com:/home/rainer temp_sshftps/
             HGTFileLoader_LocalStorage hgtFileLoader_3DEM = new HGTFileLoader_LocalStorage(directory);
 
            

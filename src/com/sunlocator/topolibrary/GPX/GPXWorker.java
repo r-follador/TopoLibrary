@@ -9,6 +9,7 @@ import java.awt.*;
 import java.awt.geom.Path2D;
 import java.awt.image.BufferedImage;
 import java.io.*;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -354,7 +355,7 @@ public class GPXWorker {
                 throw new RuntimeException("newElevationData has different dimensions than track");
             for (int j=0; j<track.getSegments().get(i).getPoints().size(); j++) {
                 WayPoint wp = track.getSegments().get(i).getPoints().get(j);
-                WayPoint np = WayPoint.of(wp.getLatitude(), wp.getLongitude(), Length.of(newElevationData.get(i)[j], Length.Unit.METER), wp.getTime().get());
+                WayPoint np = WayPoint.of(wp.getLatitude(), wp.getLongitude(), Length.of(newElevationData.get(i)[j], Length.Unit.METER), wp.getTime().orElse(ZonedDateTime.now()));
                 tsb.addPoint(np);
             }
         }
