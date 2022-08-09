@@ -136,6 +136,11 @@ public class LatLonBoundingBox {
     public LatLon getBottomRight() {
         return new LatLon(getS_Bound(), getE_Bound());
     }
+
+    public boolean isPositionWithinBbox(LatLon position) {
+        return position.getLatitude() <= getN_Bound() && position.getLatitude() >= getS_Bound() && position.getLongitude() >= getW_Bound()
+                && position.getLongitude() <= getE_Bound();
+    }
     
     public String toString() {
         return "Center: "+center.toString()+"\nBounds: N/S: "+N_Bound+"/"+S_Bound+"; E/W: "+E_Bound+"/"+W_Bound+"\nWidth Lat/Lon degree "+widthLatDegree+"/"+widthLonDegree+"\nWidth Lat/Lon meters "+widthLatMeters+"/"+widthLonMeters;
