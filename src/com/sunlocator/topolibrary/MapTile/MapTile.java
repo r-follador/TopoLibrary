@@ -209,6 +209,7 @@ public class MapTile {
      * @return latitude/longitude
      */
     public static LatLon convertPixelXYtoLatLong(XY pixel, int zoom) {
+        System.err.println("warning: there's likely an error");
         double mapSize = mapSize(zoom);
         double x = (clip(pixel.x, 0, mapSize - 1) / mapSize) - 0.5d;
         double y = 0.5d - (clip(pixel.y, 0, mapSize - 1) / mapSize);

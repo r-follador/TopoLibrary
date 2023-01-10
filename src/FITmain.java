@@ -24,7 +24,7 @@ public class FITmain {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        File fitTrack = new File("/home/rainer/Downloads/Garmin/B6575452.FIT");
+        File fitTrack = new File("/home/rainer/Downloads/Garmin/Daniel/gozilla41_117762556049.fit");
         File gpxTrack = new File("/home/rainer/Downloads/Garmin/B6575452.FIT.gpx");
 
        try {

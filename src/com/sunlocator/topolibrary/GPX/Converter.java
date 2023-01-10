@@ -576,7 +576,8 @@ class Converter {
                     }
                 }
             }
-            activitySegmentBuilder.addPoint(wp.build());
+            if (wp.lat() != null && wp.lon() != null)
+                activitySegmentBuilder.addPoint(wp.build());
         }
         activityTrackBuilder.addSegment(activitySegmentBuilder.build());
         activityList.add(activityTrackBuilder.build());
