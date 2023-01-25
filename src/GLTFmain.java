@@ -6,6 +6,7 @@
 
 
 import com.sunlocator.topolibrary.*;
+import com.sunlocator.topolibrary.MapTile.GLTFWorker;
 import com.sunlocator.topolibrary.MapTile.MapTileWorker;
 
 import java.awt.image.BufferedImage;
@@ -24,26 +25,24 @@ public class GLTFmain {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        LatLonBoundingBox boundingBox = new LatLonBoundingBox(new LatLon(13.4506574,144.5086325), 3000);
+        LatLonBoundingBox boundingBox = new LatLonBoundingBox(new LatLon(46.86372, 9.59040), 3000);
 
         LatLonBoundingBox boundingBox_problem = new LatLonBoundingBox( 46.33175800051563, 46.331, 6.9873046875, 7);
 
         try {
-            //String directory = "/home/rainer/Software_Dev/HGT/";
-            String directory = "/home/rainer/temp_sshftps/tmp_dem-data/Mapzen_3DEM/"; //sshfs rainer@private.genewarrior.com:/home/rainer temp_sshftps/
+            String directory = "/home/rainer/Software_Dev/HGT/";
+            //String directory = "/home/rainer/temp_sshftps/tmp_dem-data/Mapzen_3DEM/"; //sshfs rainer@private.genewarrior.com:/home/rainer temp_sshftps/
             HGTFileLoader_LocalStorage hgtFileLoader_3DEM = new HGTFileLoader_LocalStorage(directory);
 
-           
-           
             /**String json = HGTWorker.getJSON(hgt,true);
             PrintWriter out = new PrintWriter("/home/rainer/Software_Dev/JavaProjects/SunLocatorTopo/web/terrain.json");
             out.print(json);
             out.close();**/
 
-
            //LOD
+            GLTFDatafile gltfFile = new GLTFWorker.GLTFBuilder(boundingBox, hgtFileLoader_3DEM).setEnclosement(true).setScaleFactor(0.01f).isZUp(false).setTextureUrl("https://api.maptiler.com/maps/ch-swisstopo-lbm/%d/%d/%d.png?key=Nq5vDCKAnSrurDLNgtSI").build();
 
-            GLTFDatafile gltfFile_problem = HGTWorker.getTileGLTF_3DEM(boundingBox, calculateZoomlevel(boundingBox), false, hgtFileLoader_3DEM, null);
+
 
             //GLTFDatafile gltfDatafile = HGTWorker.getLODGLTF_3DEM(boundingBox, hgtFileLoader_3DEM);
 
@@ -55,8 +54,8 @@ public class GLTFmain {
             //out3.print(gltfDatafile.getString());
             //out3.close();
 
-            PrintWriter out3_problem = new PrintWriter("/home/rainer/Software_Dev/IdeaProjects/SunTopoStatic/problem.gltf");
-            out3_problem.print(gltfFile_problem.getString());
+            PrintWriter out3_problem = new PrintWriter("/home/rainer/Software_Dev/IdeaProjects/cubetrekXR/problem.gltf");
+            out3_problem.print(gltfFile.getString());
             out3_problem.close();
 
            //BufferedImage map_old = MapWorker.getMapPng(boundingBox);

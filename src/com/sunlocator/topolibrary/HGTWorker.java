@@ -709,11 +709,11 @@ public class HGTWorker {
                     float offset_y = (float)(((latCellNumber/4)*(cellWidth_LatMeters*4))*y*-1f);
                     if ((latCellNumber/4)%2!=0) //uneven; fuck me if I know why
                         offset_y-=2f*cellWidth_LatMeters;
-                    gltfFile.addGLTFMesh(data, (lonCellNumber+6)/4, (latCellNumber+6)/4, cellWidth_LatMeters*4f, cellWidth_LonMeters*4f, false, offset_x, offset_y, uvTexture, uvTexture);
+                    gltfFile.addGLTFMesh(data, (lonCellNumber+6)/4, (latCellNumber+6)/4, cellWidth_LatMeters*4f, cellWidth_LonMeters*4f, false, offset_x, offset_y, 1f, uvTexture, uvTexture, true);
 
                 } else {
                     short[][] data = load_3DEM(topLeftLatLon, lonCellNumber, latCellNumber, 0,0, hgtFileLoader);
-                    gltfFile.addGLTFMesh(data, lonCellNumber, latCellNumber, cellWidth_LatMeters, cellWidth_LonMeters, true, 0, 0, new GLTFDatafile.UvTexture(true, false), uvTexture);
+                    gltfFile.addGLTFMesh(data, lonCellNumber, latCellNumber, cellWidth_LatMeters, cellWidth_LonMeters, true, 0, 0, 1f, new GLTFDatafile.UvTexture(true, false), uvTexture, true);
 
                 }
             }
@@ -795,7 +795,7 @@ public class HGTWorker {
 
                 boolean enclosementNeeded =  enclosement && (x==0 || x == width-1 || y==0 || y==height-1);
 
-                GLTFDatafile.GLTFMesh mesh = gltfFile.addGLTFMesh(data, lonCellNumber, latCellNumber, cellWidth_LatMeters, cellWidth_LonMeters, enclosementNeeded, offset_x, offset_y, UVTexture, enclosementTexture);
+                GLTFDatafile.GLTFMesh mesh = gltfFile.addGLTFMesh(data, lonCellNumber, latCellNumber, cellWidth_LatMeters, cellWidth_LonMeters, enclosementNeeded, offset_x, offset_y, 1f, UVTexture, enclosementTexture, true);
                 /**System.out.println("lonCellNumer: "+ lonCellNumber);
                 System.out.println("latCellNumber: "+ latCellNumber);
                 System.out.println("cellWidth_LatMeters: "+ cellWidth_LatMeters);

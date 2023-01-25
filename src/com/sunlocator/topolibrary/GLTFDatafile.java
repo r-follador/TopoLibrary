@@ -24,7 +24,7 @@ public class GLTFDatafile {
         GLTFMesh mainMesh = new GLTFMeshTerrain(hgt, new UvTexture(false, false));
         meshes.add(mainMesh);
         if (enclosement) {
-            meshes.add((new GLTFMeshEnclosement(hgt.data, hgt.cellsLon_X, hgt.cellsLat_Y, hgt.cellWidth_LatMeters, hgt.cellWidth_LonMeters, 0, 0, new UvTexture(false, false))));
+            meshes.add((new GLTFMeshEnclosement(hgt.data, hgt.cellsLon_X, hgt.cellsLat_Y, hgt.cellWidth_LatMeters, hgt.cellWidth_LonMeters, 0, 0, 1f, new UvTexture(false, false), true)));
         }
         return mainMesh;
     }
@@ -34,46 +34,46 @@ public class GLTFDatafile {
         meshes.add(mainMesh);
 
         if (enclosement) {
-            meshes.add((new GLTFMeshEnclosement(hgt.data, hgt.cellsLon_X, hgt.cellsLat_Y, hgt.cellWidth_LatMeters, hgt.cellWidth_LonMeters, 0, 0, enclosementTexture)));
+            meshes.add((new GLTFMeshEnclosement(hgt.data, hgt.cellsLon_X, hgt.cellsLat_Y, hgt.cellWidth_LatMeters, hgt.cellWidth_LonMeters, 0, 0, 1f, enclosementTexture, true)));
         }
         return mainMesh;
     }
 
     public GLTFMesh addGLTFMesh(HGTDatafile hgt, boolean enclosement, int x_offset, int y_offset) {
-        GLTFMesh mainMesh = new GLTFMeshTerrain(hgt, x_offset, y_offset, new UvTexture(true, false));
+        GLTFMesh mainMesh = new GLTFMeshTerrain(hgt, x_offset, y_offset, 1f, new UvTexture(true, false));
         meshes.add(mainMesh);
         if (enclosement) {
-            meshes.add((new GLTFMeshEnclosement(hgt.data, hgt.cellsLon_X, hgt.cellsLat_Y, hgt.cellWidth_LatMeters, hgt.cellWidth_LonMeters, x_offset, y_offset, new UvTexture(false, false))));
+            meshes.add((new GLTFMeshEnclosement(hgt.data, hgt.cellsLon_X, hgt.cellsLat_Y, hgt.cellWidth_LatMeters, hgt.cellWidth_LonMeters, x_offset, y_offset, 1f, new UvTexture(false, false), true)));
         }
         return mainMesh;
     }
 
-    public GLTFMesh addGLTFMesh(HGTDatafile hgt, boolean enclosement, int x_offset, int y_offset, UvTexture UVTexture, UvTexture enclosementTexture) {
-        GLTFMesh mainMesh = new GLTFMeshTerrain(hgt, x_offset, y_offset, UVTexture);
+    public GLTFMesh addGLTFMesh(HGTDatafile hgt, boolean enclosement, int x_offset, int y_offset, float scaleFactor, UvTexture UVTexture, UvTexture enclosementTexture) {
+        GLTFMesh mainMesh = new GLTFMeshTerrain(hgt, x_offset, y_offset, scaleFactor, UVTexture);
         meshes.add(mainMesh);
         if (enclosement) {
-            meshes.add((new GLTFMeshEnclosement(hgt.data, hgt.cellsLon_X, hgt.cellsLat_Y, hgt.cellWidth_LatMeters, hgt.cellWidth_LonMeters, x_offset, y_offset, enclosementTexture)));
+            meshes.add((new GLTFMeshEnclosement(hgt.data, hgt.cellsLon_X, hgt.cellsLat_Y, hgt.cellWidth_LatMeters, hgt.cellWidth_LonMeters, x_offset, y_offset, scaleFactor, enclosementTexture, true)));
         }
         return mainMesh;
     }
 
-    public GLTFMesh addGLTFMesh(short[][] data, int cellsLon_X, int cellsLat_Y, double cellWidth_LatMeters, double cellWidth_LonMeters, boolean enclosement, float offset_x, float offset_y) {
-        GLTFMesh mainMesh =new GLTFMeshTerrain(data, cellsLon_X, cellsLat_Y, cellWidth_LatMeters, cellWidth_LonMeters, offset_x, offset_y, new UvTexture(true, false));
+    public GLTFMesh addGLTFMesh(short[][] data, int cellsLon_X, int cellsLat_Y, double cellWidth_LatMeters, double cellWidth_LonMeters, boolean enclosement, float offset_x, float offset_y, float scaleFactor) {
+        GLTFMesh mainMesh =new GLTFMeshTerrain(data, cellsLon_X, cellsLat_Y, cellWidth_LatMeters, cellWidth_LonMeters, offset_x, offset_y, scaleFactor, new UvTexture(true, false), true);
         meshes.add(mainMesh);
 
         if (enclosement) {
-            meshes.add((new GLTFMeshEnclosement(data, cellsLon_X, cellsLat_Y, cellWidth_LatMeters, cellWidth_LonMeters, offset_x, offset_y, new UvTexture(false, false))));
+            meshes.add((new GLTFMeshEnclosement(data, cellsLon_X, cellsLat_Y, cellWidth_LatMeters, cellWidth_LonMeters, offset_x, offset_y, scaleFactor, new UvTexture(false, false), true)));
         }
 
         return mainMesh;
     }
 
-    public GLTFMesh addGLTFMesh(short[][] data, int cellsLon_X, int cellsLat_Y, double cellWidth_LatMeters, double cellWidth_LonMeters, boolean enclosement, float offset_x, float offset_y, UvTexture UVTexture, UvTexture enclosementTexture) {
-        GLTFMesh mainMesh = new GLTFMeshTerrain(data, cellsLon_X, cellsLat_Y, cellWidth_LatMeters, cellWidth_LonMeters, offset_x, offset_y, UVTexture);
+    public GLTFMesh addGLTFMesh(short[][] data, int cellsLon_X, int cellsLat_Y, double cellWidth_LatMeters, double cellWidth_LonMeters, boolean enclosement, float offset_x, float offset_y, float scaleFactor, UvTexture UVTexture, UvTexture enclosementTexture, boolean isZUp) {
+        GLTFMesh mainMesh = new GLTFMeshTerrain(data, cellsLon_X, cellsLat_Y, cellWidth_LatMeters, cellWidth_LonMeters, offset_x, offset_y, scaleFactor, UVTexture, isZUp);
         meshes.add(mainMesh);
 
         if (enclosement) {
-            meshes.add((new GLTFMeshEnclosement(data, cellsLon_X, cellsLat_Y, cellWidth_LatMeters, cellWidth_LonMeters, offset_x, offset_y, enclosementTexture)));
+            meshes.add((new GLTFMeshEnclosement(data, cellsLon_X, cellsLat_Y, cellWidth_LatMeters, cellWidth_LonMeters, offset_x, offset_y, scaleFactor, enclosementTexture, isZUp)));
         }
         return mainMesh;
     }
@@ -163,6 +163,10 @@ public class GLTFDatafile {
             return min_height;
         }
 
+        public float getScaleFactor() {
+            return scaleFactor;
+        }
+
         public float getMax_y() {
             return max_y;
         }
@@ -175,7 +179,9 @@ public class GLTFDatafile {
             return max_height;
         }
 
-        float min_y = 0, min_x = 0, min_height = 0, max_y = 0, max_x = 0, max_height = 0;
+        float min_y = 0, min_x = 0, min_height = 0, max_y = 0, max_x = 0, max_height = 0, scaleFactor = 1f;
+
+        boolean isZUp = true;
 
         public String getPayloadVertices() {
             return payloadVertices;
@@ -205,15 +211,17 @@ public class GLTFDatafile {
     private static class GLTFMeshEnclosement extends GLTFMesh{
 
         public GLTFMeshEnclosement(HGTDatafile hgt, UvTexture uvTexture) {
-            this(hgt, 0,0, uvTexture);
+            this(hgt, 0,0, 1f, uvTexture);
         }
 
-        public GLTFMeshEnclosement(HGTDatafile hgt, float offset_x, float offset_y, UvTexture uvTexture) {
-            this(hgt.data, hgt.cellsLon_X, hgt.cellsLat_Y, hgt.cellWidth_LatMeters, hgt.cellWidth_LonMeters, offset_x, offset_y, uvTexture);
+        public GLTFMeshEnclosement(HGTDatafile hgt, float offset_x, float offset_y, float scaleFactor, UvTexture uvTexture) {
+            this(hgt.data, hgt.cellsLon_X, hgt.cellsLat_Y, hgt.cellWidth_LatMeters, hgt.cellWidth_LonMeters, offset_x, offset_y, scaleFactor, uvTexture, true);
         }
 
-        public GLTFMeshEnclosement(short[][] data, int cellsLon_X, int cellsLat_Y, double cellWidth_LatMeters, double cellWidth_LonMeters, float offset_x, float offset_y, UvTexture uvTexture) {
+        public GLTFMeshEnclosement(short[][] data, int cellsLon_X, int cellsLat_Y, double cellWidth_LatMeters, double cellWidth_LonMeters, float offset_x, float offset_y, float scaleFactor, UvTexture uvTexture, boolean isZup) {
             this.UVTexture = uvTexture;
+            this.scaleFactor =scaleFactor;
+            this.isZUp = isZup;
 
             if (this.UVTexture == null) {
                 this.UVTexture = new UvTexture(false, false);
@@ -257,13 +265,13 @@ public class GLTFDatafile {
             //North enclosure
             for (int x = 0; x < cellsLon_X; x++) {
                 float x_m = ((float)x * (float) cellWidth_LonMeters);
-                verticesArray[cellCount++]=x_m+offset_x;
-                verticesArray[cellCount++]=max_y;
-                verticesArray[cellCount++]=0f;
+                verticesArray[cellCount++]=isZup?(x_m+offset_x)*scaleFactor:max_y*scaleFactor;
+                verticesArray[cellCount++]=isZup?max_y*scaleFactor:0f;
+                verticesArray[cellCount++]=isZup?0f:(x_m+offset_x)*scaleFactor;
 
-                verticesArray[cellCount++]=x_m+offset_x;
-                verticesArray[cellCount++]=max_y;
-                verticesArray[cellCount++]= data[x][0];
+                verticesArray[cellCount++]=isZup?(x_m+offset_x)*scaleFactor:(max_y)*scaleFactor;
+                verticesArray[cellCount++]=isZup?(max_y)*scaleFactor:(float)data[x][0]*scaleFactor;
+                verticesArray[cellCount++]=isZup?(float)data[x][0]*scaleFactor:(x_m+offset_x)*scaleFactor;
 
                 if ((float) data[x][0] > max_height) {
                     max_height = data[x][0];
@@ -273,13 +281,13 @@ public class GLTFDatafile {
             //East enclosure
             for (int y = 0; y < cellsLat_Y; y++) {
                 float y_m =  ((float)y) * (float) cellWidth_LatMeters * -1.0f; //y-axis is flipped compared to array y-axis
-                verticesArray[cellCount++]=max_x;
-                verticesArray[cellCount++]=y_m+offset_y;
-                verticesArray[cellCount++]=0f;
+                verticesArray[cellCount++]=isZup?max_x*scaleFactor:(y_m+offset_y)*scaleFactor;
+                verticesArray[cellCount++]=isZup?(y_m+offset_y)*scaleFactor:0f;
+                verticesArray[cellCount++]=isZup?0f:max_x*scaleFactor;
 
-                verticesArray[cellCount++]=max_x;
-                verticesArray[cellCount++]=y_m+offset_y;
-                verticesArray[cellCount++]= data[cellsLon_X-1][y];
+                verticesArray[cellCount++]=isZup?max_x*scaleFactor:(y_m+offset_y)*scaleFactor;
+                verticesArray[cellCount++]=isZup?(y_m+offset_y)*scaleFactor:(float)data[cellsLon_X-1][y]*scaleFactor;
+                verticesArray[cellCount++]=isZup?(float)data[cellsLon_X-1][y]*scaleFactor:max_x*scaleFactor;
 
                 if ((float) data[cellsLon_X-1][y] > max_height) {
                     max_height = (float) data[cellsLon_X-1][y];
@@ -290,13 +298,13 @@ public class GLTFDatafile {
             //From right to left
             for (int x = cellsLon_X-1; x >= 0; x--) {
                 float x_m = ((float)x ) * (float) cellWidth_LonMeters;
-                verticesArray[cellCount++] = x_m+offset_x;
-                verticesArray[cellCount++] = min_y;
-                verticesArray[cellCount++] = 0f;
+                verticesArray[cellCount++] = isZup?(x_m+offset_x)*scaleFactor:min_y*scaleFactor;
+                verticesArray[cellCount++] = isZup?min_y*scaleFactor:0f;
+                verticesArray[cellCount++] = isZup?0f:(x_m+offset_x)*scaleFactor;
 
-                verticesArray[cellCount++] = x_m+offset_x;
-                verticesArray[cellCount++] = min_y;
-                verticesArray[cellCount++] = (float) data[x][cellsLat_Y-1];
+                verticesArray[cellCount++] = isZup?(x_m+offset_x)*scaleFactor:min_y*scaleFactor;
+                verticesArray[cellCount++] = isZup?min_y*scaleFactor:(float)data[x][cellsLat_Y-1]*scaleFactor;
+                verticesArray[cellCount++] = isZup?(float)data[x][cellsLat_Y-1]*scaleFactor:(x_m+offset_x)*scaleFactor;
 
                 if ((float) data[x][cellsLat_Y-1] > max_height) {
                     max_height = data[x][cellsLat_Y-1];
@@ -307,13 +315,13 @@ public class GLTFDatafile {
             //for (int y = 0; y < cellsLat_Y; y++) {
             for (int y = cellsLat_Y-1; y >=0; y--) {
                 float y_m = ((float)y ) * (float) cellWidth_LatMeters * -1.0f; //y-axis is flipped compared to array y-axis
-                verticesArray[cellCount++]=min_x;
-                verticesArray[cellCount++]=y_m+offset_y;
-                verticesArray[cellCount++]=0f;
+                verticesArray[cellCount++]=isZup?min_x*scaleFactor:(y_m+offset_y)*scaleFactor;
+                verticesArray[cellCount++]=isZup?(y_m+offset_y)*scaleFactor:0f;
+                verticesArray[cellCount++]=isZup?0f:min_x*scaleFactor;
 
-                verticesArray[cellCount++]=min_x;
-                verticesArray[cellCount++]=y_m+offset_y;
-                verticesArray[cellCount++]=(float) data[0][y];
+                verticesArray[cellCount++]=isZup?min_x*scaleFactor:(y_m+offset_y)*scaleFactor;
+                verticesArray[cellCount++]=isZup?(y_m+offset_y)*scaleFactor:(float)data[0][y]*scaleFactor;
+                verticesArray[cellCount++]=isZup?(float)data[0][y]*scaleFactor:min_x*scaleFactor;
 
                 if ((float) data[0][y] > max_height) {
                     max_height =  data[0][y];
@@ -333,15 +341,17 @@ public class GLTFDatafile {
     private static class GLTFMeshTerrain extends GLTFMesh{
 
         public GLTFMeshTerrain(HGTDatafile hgt, UvTexture uvTexture) {
-            this(hgt, 0,0, uvTexture);
+            this(hgt, 0,0, 1f, uvTexture);
         }
 
-        public GLTFMeshTerrain(HGTDatafile hgt, float offset_x, float offset_y, UvTexture uvTexture) {
-            this(hgt.data, hgt.cellsLon_X, hgt.cellsLat_Y, hgt.cellWidth_LatMeters, hgt.cellWidth_LonMeters, offset_x, offset_y, uvTexture);
+        public GLTFMeshTerrain(HGTDatafile hgt, float offset_x, float offset_y, float scaleFactor, UvTexture uvTexture) {
+            this(hgt.data, hgt.cellsLon_X, hgt.cellsLat_Y, hgt.cellWidth_LatMeters, hgt.cellWidth_LonMeters, offset_x, offset_y, scaleFactor, uvTexture, true);
         }
 
-        public GLTFMeshTerrain(short[][] data, int cellsLon_X, int cellsLat_Y, double cellWidth_LatMeters, double cellWidth_LonMeters, float offset_x, float offset_y, UvTexture uvTexture) {
+        public GLTFMeshTerrain(short[][] data, int cellsLon_X, int cellsLat_Y, double cellWidth_LatMeters, double cellWidth_LonMeters, float offset_x, float offset_y, float scaleFactor, UvTexture uvTexture, boolean isZup) {
+            this.isZUp = isZup;
             this.UVTexture = uvTexture;
+            this.scaleFactor = scaleFactor;
 
             if (this.UVTexture == null)
                 this.UVTexture = new UvTexture(false, false);
@@ -364,7 +374,6 @@ public class GLTFDatafile {
                 }
             }
 
-
             //Vertices
             int verticesArraySize = ((cellsLat_Y) * (cellsLon_X))*3;
             float[] verticesArray = new float[verticesArraySize];
@@ -386,10 +395,17 @@ public class GLTFDatafile {
                     float x_m = ((float)x) * (float) cellWidth_LonMeters;
                     float height = data[x][y];
 
-                    verticesArray[cellCount++]=x_m+offset_x;
-                    verticesArray[cellCount++]=y_m+offset_y;
-                    verticesArray[cellCount++]=height;
+                    if (this.isZUp) {
+                        verticesArray[cellCount++] = (x_m + offset_x) * this.scaleFactor;
+                        verticesArray[cellCount++] = (y_m + offset_y) * this.scaleFactor;
+                        verticesArray[cellCount++] = (height) * this.scaleFactor;
+                    } else { //y is up
+                        verticesArray[cellCount++] = (y_m + offset_y) * this.scaleFactor;
+                        verticesArray[cellCount++] = (height) * this.scaleFactor;
+                        verticesArray[cellCount++] = (x_m + offset_x) * this.scaleFactor;
+                    }
 
+                    //scale factor will be applied in the string generation
                     if (height > max_height)
                         max_height = height;
                     if (height < min_height)
@@ -655,10 +671,18 @@ public class GLTFDatafile {
                     "   \"byteOffset\" : 0,\n" +
                     "   \"componentType\" : 5126,\n" + //5126: FLOAT (4 byte)
                     "   \"count\" : "+mesh.getCountVertices()+",\n" +
-                    "   \"type\" : \"VEC3\",\n" +
-                    "   \"max\" : [ "+mesh.getMax_x()+", "+mesh.getMax_y()+", "+mesh.getMax_height()+" ],\n" + //Max/min
-                    "   \"min\" : [ "+mesh.getMin_x()+", "+mesh.getMin_y()+", "+mesh.getMin_height()+" ]\n" +  //max/min
-                    "}");
+                    "   \"type\" : \"VEC3\",\n");
+
+                    if (mesh.isZUp) {stringBuffer.append(
+                        "   \"max\" : [ " + (mesh.getMax_x() * mesh.getScaleFactor()) + ", " + (mesh.getMax_y() * mesh.getScaleFactor()) + ", " + (mesh.getMax_height() * mesh.getScaleFactor()) + " ],\n" + //Max/min
+                        "   \"min\" : [ " + (mesh.getMin_x() * mesh.getScaleFactor()) + ", " + (mesh.getMin_y() * mesh.getScaleFactor()) + ", " + (mesh.getMin_height() * mesh.getScaleFactor()) + " ]\n" //max/min
+                        );}
+                    else {stringBuffer.append(
+                        "   \"max\" : [ " + (mesh.getMax_y() * mesh.getScaleFactor()) + ", " + (mesh.getMax_height() * mesh.getScaleFactor()) + ", " + (mesh.getMax_x() * mesh.getScaleFactor()) + " ],\n" + //Max/min
+                        "   \"min\" : [ " + (mesh.getMin_y() * mesh.getScaleFactor()) + ", " + (mesh.getMin_height() * mesh.getScaleFactor()) + ", " + (mesh.getMin_x() * mesh.getScaleFactor()) + " ]\n" //max/min
+                    );}
+
+                    stringBuffer.append("}");
 
                     if (mesh.getUVTexture().hasUV()) {
                         stringBuffer.append(",\n" +
