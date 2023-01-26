@@ -14,6 +14,8 @@ public class GLTFWorker {
 
         private float scaleFactor = 1f;
 
+        private float scaleFactorHeight = 1f;
+
         private boolean zUp = true;
 
         private boolean enclosement = false;
@@ -30,6 +32,11 @@ public class GLTFWorker {
 
         public GLTFBuilder setZoomlevel(int zoomlevel) {
             this.zoomLevel = zoomlevel;
+            return this;
+        }
+
+        public GLTFBuilder exaggerateHeight(float scaleFactorHeight) {
+            this.scaleFactorHeight = scaleFactorHeight;
             return this;
         }
 
@@ -128,7 +135,7 @@ public class GLTFWorker {
 
                 boolean enclosementNeeded =  builder.enclosement && (x==0 || x == tileWidth-1 || y==0 || y==tileHeight-1);
 
-                GLTFDatafile.GLTFMesh mesh = gltfFile.addGLTFMesh(data, lonCellNumber, latCellNumber, cellWidth_LatMeters, cellWidth_LonMeters, enclosementNeeded, offset_x, offset_y, builder.scaleFactor, UVTexture, enclosementTexture, builder.zUp);
+                GLTFDatafile.GLTFMesh mesh = gltfFile.addGLTFMesh(data, lonCellNumber, latCellNumber, cellWidth_LatMeters, cellWidth_LonMeters, enclosementNeeded, offset_x, offset_y, builder.scaleFactor, builder.scaleFactorHeight, UVTexture, enclosementTexture, builder.zUp);
 
                 mesh.metadata.put("Tile_Z", String.valueOf(mtiles[x][y].zoom));
                 mesh.metadata.put("Tile_X", String.valueOf(mtiles[x][y].x));

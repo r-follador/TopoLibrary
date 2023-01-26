@@ -25,9 +25,7 @@ public class GLTFmain {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        LatLonBoundingBox boundingBox = new LatLonBoundingBox(new LatLon(46.86372, 9.59040), 3000);
-
-        LatLonBoundingBox boundingBox_problem = new LatLonBoundingBox( 46.33175800051563, 46.331, 6.9873046875, 7);
+        LatLonBoundingBox boundingBox = new LatLonBoundingBox(new LatLon(46.86372, 9.59040), 10000);
 
         try {
             String directory = "/home/rainer/Software_Dev/HGT/";
@@ -40,7 +38,12 @@ public class GLTFmain {
             out.close();**/
 
            //LOD
-            GLTFDatafile gltfFile = new GLTFWorker.GLTFBuilder(boundingBox, hgtFileLoader_3DEM).setEnclosement(true).setScaleFactor(0.01f).isZUp(false).setTextureUrl("https://api.maptiler.com/maps/ch-swisstopo-lbm/%d/%d/%d.png?key=Nq5vDCKAnSrurDLNgtSI").build();
+            GLTFDatafile gltfFile = new GLTFWorker.GLTFBuilder(boundingBox, hgtFileLoader_3DEM)
+                    .setEnclosement(true)
+                    .setScaleFactor(0.0001f)
+                    .exaggerateHeight(1.5f)
+                    .isZUp(false)
+                    .setTextureUrl("https://api.maptiler.com/maps/ch-swisstopo-lbm/%d/%d/%d.png?key=Nq5vDCKAnSrurDLNgtSI").build();
 
 
 
