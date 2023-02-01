@@ -3,7 +3,7 @@ plugins {
 }
 
 group 'com.sunlocator'
-version '2.0-SNAPSHOT'
+version '2.2-SNAPSHOT'
 
 repositories {
     mavenCentral()
@@ -19,19 +19,17 @@ sourceSets {
 
 configurations {
     // configuration that holds jars to include in the jar
-    extraLibs
+    //extraLibs
 }
 
 dependencies {
-    compile 'junit:junit:4.13.2'
-    implementation 'io.jenetics:jpx:2.3.0'
-    //implementation fileTree(dir: 'libs', include: 'fit.jar')
-    extraLibs fileTree(dir: 'libs', include: 'fit.jar')
-    configurations.compile.extendsFrom(configurations.extraLibs)
+    api 'junit:junit:4.13.2'
+    implementation 'io.jenetics:jpx:3.0.1'
+    implementation files('libs/fit.jar')
 }
 
 jar {
-    from {
-        configurations.extraLibs.collect { it.isDirectory() ? it : zipTree(it) }
-    }
+    //from {
+    //    configurations.extraLibs.collect { it.isDirectory() ? it : zipTree(it) }
+    //}
 }

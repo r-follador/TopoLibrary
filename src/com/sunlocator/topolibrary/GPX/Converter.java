@@ -550,7 +550,7 @@ class Converter {
                 wp.lat(Double.parseDouble(m.getValue().get("position_lat"))).lon(Double.parseDouble(m.getValue().get("position_long")));
             }
 
-            ZonedDateTime zdt = ZonedDateTime.ofInstant(Instant.ofEpochMilli(Long.parseLong(m.getValue().get("GPXtime"))), ZoneId.of("UTC"));
+            Instant zdt = Instant.ofEpochMilli(Long.parseLong(m.getValue().get("GPXtime")));
 
             wp.time(zdt);
             if (m.getValue().get("enhanced_altitude") != null) {

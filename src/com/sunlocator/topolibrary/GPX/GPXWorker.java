@@ -9,6 +9,7 @@ import java.awt.*;
 import java.awt.geom.Path2D;
 import java.awt.image.BufferedImage;
 import java.io.*;
+import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
@@ -21,7 +22,7 @@ public class GPXWorker {
     //Based on https://github.com/jenetics/jpx
 
     public static ConversionOutput loadGPXTracks(InputStream inputStream) throws IOException {
-        return new ConversionOutput(GPX.reader(GPX.Reader.Mode.LENIENT).read(inputStream).getTracks());
+        return new ConversionOutput(GPX.Reader.of(GPX.Reader.Mode.LENIENT).read(inputStream).getTracks());
     }
 
     public static ConversionOutput loadFitTracks(InputStream inputStream) throws IOException {
@@ -355,7 +356,7 @@ public class GPXWorker {
                 throw new RuntimeException("newElevationData has different dimensions than track");
             for (int j=0; j<track.getSegments().get(i).getPoints().size(); j++) {
                 WayPoint wp = track.getSegments().get(i).getPoints().get(j);
-                WayPoint np = WayPoint.of(wp.getLatitude(), wp.getLongitude(), Length.of(newElevationData.get(i)[j], Length.Unit.METER), wp.getTime().orElse(ZonedDateTime.now()));
+                WayPoint np = WayPoint.of(wp.getLatitude(), wp.getLongitude(), Length.of(newElevationData.get(i)[j], Length.Unit.METER), wp.getTime().orElse(Instant.now()));
                 tsb.addPoint(np);
             }
         }
