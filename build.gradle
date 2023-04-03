@@ -25,6 +25,7 @@ configurations {
 dependencies {
     api 'junit:junit:4.13.2'
     implementation 'io.jenetics:jpx:3.0.1'
+    implementation 'org.locationtech.jts:jts-core:1.19.0'
     implementation files('libs/fit.jar')
 }
 

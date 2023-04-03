@@ -4,6 +4,9 @@ package com.sunlocator.topolibrary.GPX;
 import com.sunlocator.topolibrary.*;
 import io.jenetics.jpx.*;
 import io.jenetics.jpx.Point;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.LineString;
+import org.locationtech.jts.geom.MultiLineString;
 
 import java.awt.*;
 import java.awt.geom.Path2D;
@@ -141,6 +144,20 @@ public class GPXWorker {
         return trackBuilder.build();
     }
 
+    public static Track reduceTrackSegments(MultiLineString original, double epsilon) {
+        Track.Builder trackBuilder = Track.builder().name("").desc("");
+
+        for (int i=0; i<original.getNumGeometries(); i++) {
+            Coordinate[] coord = original.getGeometryN(i).getCoordinates();
+
+            List<WayPoint> reducedSegment = new ArrayList<>();
+            ramerDouglasPeucker(coord, epsilon, reducedSegment);
+            trackBuilder.addSegment(TrackSegment.builder().points(reducedSegment).build());
+        }
+
+        return trackBuilder.build();
+    }
+
     private static void ramerDouglasPeucker(List<WayPoint> pointList, double epsilon, List<WayPoint> out) {
         //from https://rosettacode.org/wiki/Ramer-Douglas-Peucker_line_simplification#Java
         if (pointList.size() < 2) throw new IllegalArgumentException("Not enough points to simplify");
@@ -178,6 +195,14 @@ public class GPXWorker {
         }
     }
 
+    private static void ramerDouglasPeucker(Coordinate[] coordList, double epsilon, List<WayPoint> out) {
+        List<WayPoint> pointList = new ArrayList<>();
+        for (Coordinate coordinate : coordList) {
+            pointList.add(WayPoint.of(coordinate.y, coordinate.x));
+        }
+        ramerDouglasPeucker(pointList, epsilon, out);
+    }
+
     private static double perpendicularDistance(WayPoint pt, WayPoint lineStart, WayPoint lineEnd) {
         double dx = lineEnd.getLatitude().doubleValue() - lineStart.getLatitude().doubleValue();
         dx = HGTWorker.lengthOfDegreeLatitude()*dx; //convert from latitude distance to meters
@@ -203,6 +228,49 @@ public class GPXWorker {
         double ay = pvy - pvdot * dy;
 
         return Math.hypot(ax, ay);
+    }
+    /**
+     * Returns Encoded Polyline Algorithm Format (see https://developers.google.com/maps/documentation/utilities/polylinealgorithm)
+     * @param trackSegment
+     * @return Encoded Polyline Algorithm Format
+     */
+    public static String encode2EPA(TrackSegment trackSegment) {
+        StringBuilder encodedPolyline = new StringBuilder();
+        int prevLat = 0;
+        int prevLng = 0;
+
+        for (WayPoint coordinate : trackSegment.getPoints()) {
+            int lat = (int) Math.round(coordinate.getLatitude().doubleValue() * 1e5);
+            int lng = (int) Math.round(coordinate.getLongitude().doubleValue() * 1e5);
+
+            encodedPolyline.append(encodeNumber(lat - prevLat));
+            encodedPolyline.append(encodeNumber(lng - prevLng));
+
+            prevLat = lat;
+            prevLng = lng;
+        }
+
+        return encodedPolyline.toString();
+    }
+
+    private static String encodeNumber(int number) {
+        number = number << 1;
+        if (number < 0) {
+            number = ~number;
+        }
+
+        StringBuilder encodedNumber = new StringBuilder();
+
+        while (number >= 0x20) {
+            int nextValue = (0x20 | (number & 0x1f)) + 63;
+            encodedNumber.append((char) (nextValue));
+            number >>= 5;
+        }
+
+        number += 63;
+        encodedNumber.append((char) (number));
+
+        return encodedNumber.toString();
     }
 
     public static TrackSummary getTrackSummary(Track track) {
