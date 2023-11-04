@@ -12,26 +12,8 @@ import java.net.URL;
 public class MapWorker {
 
     public static BufferedImage getMapPng(LatLonBoundingBox boundingBox) throws IOException {
-
-        //test url:
-        //https://api.maptiler.com/maps/basic/static/9.37,46.71,9.80,47.01/2000x2000.png?key=***REMOVED***&path=9.37,46.71|9.80,46.71|9.80,47.01|9.37,47.01|9.37,46.71
-
-        //maptiler url
-        //URL url =new URL("https://api.maptiler.com/maps/basic/static/"+boundingBox.getW_Bound()+","+boundingBox.getS_Bound()+","+boundingBox.getE_Bound()+","+boundingBox.getN_Bound()+"/"+mapSize_x+"x"+mapSize_y+".png?key=***REMOVED***");
-        //URL url = new URL("https://api.maptiler.com/maps/basic/static/"+boundingBox.getCenter().getLongitude()+","+boundingBox.getCenter().getLatitude()+","+(zoomSetting.zoomLevel-1)+"/"+zoomSetting.widthPx+"x"+zoomSetting.widthPx+".png?key=***REMOVED***");
-
-        //mapquest
-        //https://www.mapquestapi.com/staticmap/v5/map?key=Zb3TQrlF7i81yeJiVzIPDPXs7qw2g67N&boundingBox=47.01,9.37,46.71,9.80&size=1024,1024&shape=46.71,9.37|46.71,9.80|47.01,9.80|47.01,9.37|46.71,9.37
-        //String key = "Zb3TQrlF7i81yeJiVzIPDPXs7qw2g67N";
-        //URL url = new URL("https://www.mapquestapi.com/staticmap/v5/map?key="+key+"&boundingBox="+boundingBox.getN_Bound()+","+boundingBox.getW_Bound()+","+boundingBox.getS_Bound()+","+boundingBox.getE_Bound()+"&size=1024,1024");
-
-        //Thunderforest
-        //https://tile.thunderforest.com/static/outdoors/9.59043,46.86365,15/1024x1024.png?apikey=694d0a46ebbe4fcea2afff9581a3a773
-        //URL url = new URL("https://tile.thunderforest.com/static/landscape/"+boundingBox.getCenter().getLongitude()+","+boundingBox.getCenter().getLatitude()+","+zoomSetting.zoomLevel+"/"+zoomSetting.widthPx+"x"+zoomSetting.heightPx+".png?apikey=694d0a46ebbe4fcea2afff9581a3a773");
-
-
         OSMZoomSetting zoomSetting = getBestZoomLevel(boundingBox, 1024);
-        URL url = new URL("https://api.maptiler.com/maps/dae70481-0d42-4345-867d-216c14f6ead8/static/"+boundingBox.getCenter().getLongitude()+","+boundingBox.getCenter().getLatitude()+","+(zoomSetting.zoomLevel-1)+"/"+zoomSetting.widthPx+"x"+zoomSetting.widthPx+".png?key=***REMOVED***");
+        URL url = new URL("https://api.maptiler.com/maps/dae70481-0d42-4345-867d-216c14f6ead8/static/"+boundingBox.getCenter().getLongitude()+","+boundingBox.getCenter().getLatitude()+","+(zoomSetting.zoomLevel-1)+"/"+zoomSetting.widthPx+"x"+zoomSetting.widthPx+".png?key=xxxx");
 
         return getImageFromUrl(url);
     }
@@ -58,7 +40,7 @@ public class MapWorker {
      * @throws IOException
      */
     public static BufferedImage getMapPng(int x, int y, int z) throws IOException {
-        URL url = new URL("https://api.maptiler.com/maps/dae70481-0d42-4345-867d-216c14f6ead8/"+z+"/"+x+"/"+y+"@2x.png?key=***REMOVED***");
+        URL url = new URL("https://api.maptiler.com/maps/dae70481-0d42-4345-867d-216c14f6ead8/"+z+"/"+x+"/"+y+"@2x.png?key=xxx");
         return getImageFromUrl(url);
     }
 

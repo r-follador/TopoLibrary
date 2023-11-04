@@ -54,6 +54,6 @@ public class MapTilemain {
     }
 
     private static String formatURL(MapTile mapTile) {
-        return String.format("https://api.maptiler.com/maps/basic/%d/%d/%d@2x.png?key=***REMOVED***", mapTile.zoom, mapTile.x, mapTile.y);
+        return String.format("https://api.maptiler.com/maps/basic/%d/%d/%d@2x.png?key=xxx", mapTile.zoom, mapTile.x, mapTile.y);
     }
 }
