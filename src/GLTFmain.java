@@ -43,8 +43,8 @@ public class GLTFmain {
                     .setScaleFactor(0.0001f)
                     .exaggerateHeight(1.5f)
                     .isZUp(false)
-                    //.setTextureUrl("https://api.maptiler.com/maps/ch-swisstopo-lbm/%d/%d/%d.png?key=Nq5vDCKAnSrurDLNgtSI").build();
-                    .setTextureUrl("https://api.maptiler.com/tiles/satellite-v2/%d/%d/%d.jpg?key=Nq5vDCKAnSrurDLNgtSI").build();
+                    //.setTextureUrl("https://api.maptiler.com/maps/ch-swisstopo-lbm/%d/%d/%d.png?key=xxx").build();
+                    .setTextureUrl("https://api.maptiler.com/tiles/satellite-v2/%d/%d/%d.jpg?key=xxx").build();
 
 
 

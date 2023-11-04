@@ -28,7 +28,7 @@ public class FitCorrectElevation {
      */
     public static void main(String[] args) {
         //3288 in cubetrek, massive elevation errors
-        File gpxTrack = new File("/home/rainer/Downloads/Garmin/Problem_tracks/20220731_090254.gpx");
+        File gpxTrack = new File("/home/rainer/Downloads/Garmin/Strava/753608283.fit-replaced.gpx");
         String directory_1DEM = "/home/rainer/Software_Dev/HGT_1DEM/";
         HGTFileLoader_LocalStorage hgtFileLoader_1DEM = new HGTFileLoader_LocalStorage(directory_1DEM);
         HGTFileLoader_LocalStorage hgtFileLoader_3DEM = new HGTFileLoader_LocalStorage("/home/rainer/Software_Dev/HGT/");
@@ -39,17 +39,17 @@ public class FitCorrectElevation {
            Track track = GPXWorker.loadGPXTracks(gpxTrack).trackList.get(0);
            System.out.println("Load time: "+(System.currentTimeMillis()-start)+" ms");
            System.out.println("Points: "+track.getSegments().get(0).getPoints().size());
-           Track reduced = GPXWorker.reduceTrackSegments(track, 2);
+           Track reduced = GPXWorker.reduceTrackSegments(track, 10);
 
            boolean allWayPointsHaveElevation = reduced.getSegments().get(0).getPoints().stream()
                    .allMatch(wayPoint -> wayPoint.getElevation().isPresent());
 
 
            System.out.println("Points reduced: "+reduced.getSegments().get(0).getPoints().size());
+           GPXWorker.TrackSummary trackSummary = GPXWorker.getTrackSummary(track);
+           System.out.println(trackSummary);
 
-
-
-           GPXWorker.TrackSummary trackSummary = GPXWorker.getTrackSummary(reduced);
+           trackSummary = GPXWorker.getTrackSummary(reduced);
            System.out.println(trackSummary);
 
            System.out.println("---------------");
