@@ -286,6 +286,8 @@ public class GPXWorker {
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd/yyyy - HH:mm:ss SSS");
 
+        boolean containsHeartRate = false;
+
 
         for (TrackSegment segment : track.getSegments()) {
             points += segment.getPoints().size();
@@ -308,6 +310,8 @@ public class GPXWorker {
                 else
                     up += ele;
                 time += timediff;
+
+                containsHeartRate = containsHeartRate || thisPoint.getDGPSID().isPresent();
             }
         }
 
@@ -320,6 +324,7 @@ public class GPXWorker {
         out.segments = track.getSegments().size();
         out.highestpointEle = highestpoint;
         out.lowestpointEle = lowestpoint;
+        out.containsHeartRate = containsHeartRate;
 
         return out;
     }
@@ -391,6 +396,10 @@ public class GPXWorker {
             this.lowestpointEle = lowestpointEle;
         }
 
+        public void setContainsHeartRate(boolean containsHeartRate) {this.containsHeartRate = containsHeartRate;}
+
+        public boolean containsHeartRate() {return containsHeartRate;}
+
         public int distance;
         public int elevationUp;
         public int elevationDown;
@@ -399,13 +408,15 @@ public class GPXWorker {
         public int points;
         public int highestpointEle;
         public int lowestpointEle;
+        public boolean containsHeartRate;
 
         public String toString() {
             return "Distance: "+distance + " m \n"+
                     "Elevation Up/Down: "+ elevationUp +"m / "+elevationDown +"m \n" +
                     "Duration: "+duration+"min \n"+
                     "Total Segments/Points: "+segments+"/"+points + "\n"+
-                    "Highest/Lowest Elevation: "+highestpointEle + "m /" + lowestpointEle + "m";
+                    "Highest/Lowest Elevation: "+highestpointEle + "m /" + lowestpointEle + "m\n"+
+                    "Contains Heart Rate data: "+containsHeartRate;
         }
     }
 

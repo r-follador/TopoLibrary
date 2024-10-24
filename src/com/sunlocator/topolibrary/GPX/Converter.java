@@ -567,6 +567,8 @@ class Converter {
                     if (m.getValue().get("temperature") != null) {
                     }
                     if (m.getValue().get("heart_rate") != null) {
+                        //abuse and misuse dgpsid for heartrate
+                        wp.dgpsid(Integer.decode(m.getValue().get("heart_rate")));
                     }
                     if (m.getValue().get("cadence") != null) {
                     }

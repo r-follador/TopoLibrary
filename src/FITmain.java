@@ -27,10 +27,12 @@ public class FITmain {
         File fitTrack = new File("/home/rainer/Downloads/Garmin/Daniel/gozilla41_117762556049.fit");
         File gpxTrack = new File("/home/rainer/Downloads/Garmin/B6575452.FIT.gpx");
 
+        File fitTrackhearrate = new File("/home/rainer/Downloads/Garmin/coros_heartrate.fit");
+
        try {
            System.out.println("Start loading FIT");
            long start = System.currentTimeMillis();
-           GPXWorker.ConversionOutput conversionOutput = GPXWorker.loadFitTracks(fitTrack);
+           GPXWorker.ConversionOutput conversionOutput = GPXWorker.loadFitTracks(fitTrackhearrate);
            List<Track> trackList = conversionOutput.trackList;
 
            System.out.println("Type/Subtype: " + conversionOutput.sportString + " "+conversionOutput.subsportString);
