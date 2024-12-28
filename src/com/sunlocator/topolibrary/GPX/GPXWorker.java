@@ -5,7 +5,6 @@ import com.sunlocator.topolibrary.*;
 import io.jenetics.jpx.*;
 import io.jenetics.jpx.Point;
 import org.locationtech.jts.geom.Coordinate;
-import org.locationtech.jts.geom.LineString;
 import org.locationtech.jts.geom.MultiLineString;
 
 import java.awt.*;
@@ -13,7 +12,6 @@ import java.awt.geom.Path2D;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.time.Instant;
-import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -25,7 +23,10 @@ public class GPXWorker {
     //Based on https://github.com/jenetics/jpx
 
     public static ConversionOutput loadGPXTracks(InputStream inputStream) throws IOException {
-        return new ConversionOutput(GPX.Reader.of(GPX.Reader.Mode.LENIENT).read(inputStream).getTracks());
+        ConversionOutput out = new ConversionOutput(GPX.Reader.of(GPX.Reader.Mode.LENIENT).read(inputStream).getTracks());
+        if (out.trackList.isEmpty())
+            out = ConversionOutput.loadFromRoute(GPX.Reader.of(GPX.Reader.Mode.LENIENT).read(inputStream).getRoutes());
+        return out;
     }
 
     public static ConversionOutput loadFitTracks(InputStream inputStream) throws IOException {
@@ -50,6 +51,21 @@ public class GPXWorker {
         public ConversionOutput(List<Track> t) {
             this.trackList = t;
         }
+
+        public static ConversionOutput loadFromRoute(List<Route> r) {
+            ArrayList<Track> tracks = new ArrayList<>();
+            for (Route route : r) {
+                TrackSegment.Builder tsb = TrackSegment.builder();
+                for (WayPoint wp : route.getPoints())
+                    tsb.addPoint(wp);
+
+                TrackSegment trackSegment = tsb.build();
+                Track t = Track.builder().addSegment(trackSegment).build();
+                tracks.add(t);
+            }
+            return new ConversionOutput(tracks);
+        }
+
         public List<Track> trackList = null;
         public String sportString = "";
         public String subsportString = "";

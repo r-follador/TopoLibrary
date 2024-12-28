@@ -28,7 +28,7 @@ public class GPXmain {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        File gpsTrack = new File("/home/rainer/Downloads/Garmin/Problem_tracks/Usq4Pz.gpx");
+        File gpsTrack = new File("/home/rainer/Downloads/Garmin/Problem_tracks/2018.09.30 Herbsttour auf den Chäserrugg (2260 m).gpx");
         String directory_1DEM = "/home/rainer/Software_Dev/HGT_1DEM/";
         HGTFileLoader_LocalStorage hgtFileLoader = new HGTFileLoader_LocalStorage(directory_1DEM);
 
