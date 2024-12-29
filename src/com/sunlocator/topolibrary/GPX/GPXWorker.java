@@ -23,10 +23,7 @@ public class GPXWorker {
     //Based on https://github.com/jenetics/jpx
 
     public static ConversionOutput loadGPXTracks(InputStream inputStream) throws IOException {
-        ConversionOutput out = new ConversionOutput(GPX.Reader.of(GPX.Reader.Mode.LENIENT).read(inputStream).getTracks());
-        if (out.trackList.isEmpty())
-            out = ConversionOutput.loadFromRoute(GPX.Reader.of(GPX.Reader.Mode.LENIENT).read(inputStream).getRoutes());
-        return out;
+        return new ConversionOutput(GPX.Reader.of(GPX.Reader.Mode.LENIENT).read(inputStream).getTracks());
     }
 
     public static ConversionOutput loadFitTracks(InputStream inputStream) throws IOException {
