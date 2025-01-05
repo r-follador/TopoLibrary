@@ -590,8 +590,27 @@ public class GPXWorker {
             }
             output.add(out);
         }
-
         return output;
+    }
+
+    public static ArrayList<short[]> getElevationDataFromHGT(MultiLineString multiLineString, HGTFileLoader hgtFileLoader_1DEM, HGTFileLoader hgtFileLoader_3DEM) throws IOException {
+        return getElevationDataFromHGT(convertMultlinestringToTrack(multiLineString), hgtFileLoader_1DEM, hgtFileLoader_3DEM);
+    }
+
+    public static Track convertMultlinestringToTrack(MultiLineString multiLineString) {
+        Track.Builder trackBuilder = Track.builder().name("").desc("");
+
+        for (int i=0; i<multiLineString.getNumGeometries(); i++) {
+            Coordinate[] coord = multiLineString.getGeometryN(i).getCoordinates();
+
+            List<WayPoint> segment = new ArrayList<>();
+            for (Coordinate coordinate : coord) {
+                segment.add(WayPoint.of(coordinate.y, coordinate.x));
+            }
+            trackBuilder.addSegment(TrackSegment.builder().points(segment).build());
+        }
+
+        return trackBuilder.build();
     }
 
     private static int getNonInitIndex(short[] shortArray) {
