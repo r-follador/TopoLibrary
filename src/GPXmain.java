@@ -48,6 +48,8 @@ public class GPXmain {
            Track reduced = GPXWorker.reduceTrackSegments(track, 2);
            for (TrackSegment segment : reduced.getSegments()) {
                System.out.println("- Points reduced: "+segment.getPoints().size());
+               System.out.println(segment.getPoints().get(0));
+               System.out.println(segment.getPoints().get(0).getTime());
            }
 
            GPXWorker.TrackSummary trackSummary = GPXWorker.getTrackSummary(reduced);

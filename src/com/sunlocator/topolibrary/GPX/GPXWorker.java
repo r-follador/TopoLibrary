@@ -460,10 +460,10 @@ public class GPXWorker {
         List<TrackSegment> output = new ArrayList<>();
         if (segments.size()!= newElevationData.size())
             throw new RuntimeException("newElevationData has different dimensions than track");
-        TrackSegment.Builder tsb = TrackSegment.builder();
         for (int i=0; i<segments.size(); i++) {
             if (segments.get(i).getPoints().size()!= newElevationData.get(i).length)
                 throw new RuntimeException("newElevationData has different dimensions than track");
+            TrackSegment.Builder tsb = TrackSegment.builder();
             for (int j=0; j<segments.get(i).getPoints().size(); j++) {
                 WayPoint wp = segments.get(i).getPoints().get(j);
                 WayPoint np = WayPoint.of(wp.getLatitude(), wp.getLongitude(), Length.of(newElevationData.get(i)[j], Length.Unit.METER), wp.getTime().orElse(Instant.now()));
