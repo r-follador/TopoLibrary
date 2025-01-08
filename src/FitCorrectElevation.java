@@ -54,8 +54,8 @@ public class FitCorrectElevation {
 
            System.out.println("---------------");
 
-           ArrayList<short[]> eles = GPXWorker.getElevationDataFromHGT(reduced, hgtFileLoader_1DEM, hgtFileLoader_3DEM);
-           ArrayList<short[]> normalizedEle = GPXWorker.normalizeElevationData(GPXWorker.getElevationDataAsArray(reduced), eles);
+           ArrayList<short[]> eles = GPXWorker.getElevationDataFromHGT(reduced.getSegments(), hgtFileLoader_1DEM, hgtFileLoader_3DEM);
+           ArrayList<short[]> normalizedEle = GPXWorker.normalizeElevationData(GPXWorker.getElevationDataAsArray(reduced.getSegments()), eles);
 
            for (int i=0; i<reduced.getSegments().size(); i++) {
                for (int j=0; j<reduced.getSegments().get(i).getPoints().size(); j++) {
