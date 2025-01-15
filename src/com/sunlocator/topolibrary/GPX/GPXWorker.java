@@ -6,11 +6,13 @@ import io.jenetics.jpx.*;
 import io.jenetics.jpx.Point;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.MultiLineString;
+import org.w3c.dom.Document;
 
 import java.awt.*;
 import java.awt.geom.Path2D;
 import java.awt.image.BufferedImage;
 import java.io.*;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
@@ -466,7 +468,8 @@ public class GPXWorker {
             TrackSegment.Builder tsb = TrackSegment.builder();
             for (int j=0; j<segments.get(i).getPoints().size(); j++) {
                 WayPoint wp = segments.get(i).getPoints().get(j);
-                WayPoint np = WayPoint.of(wp.getLatitude(), wp.getLongitude(), Length.of(newElevationData.get(i)[j], Length.Unit.METER), wp.getTime().orElse(Instant.now()));
+                //Abuse DGPSID for heartrate
+                WayPoint np = WayPoint.of(wp.getLatitude(), wp.getLongitude(), Length.of(newElevationData.get(i)[j], Length.Unit.METER), null, wp.getTime().orElse(Instant.now()), null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, wp.getDGPSID().orElse(null), null, null);
                 tsb.addPoint(np);
             }
             output.add(tsb.build());

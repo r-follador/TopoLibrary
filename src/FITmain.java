@@ -8,9 +8,11 @@
 import com.sunlocator.topolibrary.GPX.GPXWorker;
 import com.sunlocator.topolibrary.HGTFileLoader_LocalStorage;
 import io.jenetics.jpx.Track;
+import io.jenetics.jpx.TrackSegment;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -24,27 +26,31 @@ public class FITmain {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        File fitTrack = new File("/home/rainer/Downloads/Garmin/Daniel/gozilla41_117762556049.fit");
-        File gpxTrack = new File("/home/rainer/Downloads/Garmin/B6575452.FIT.gpx");
 
-        File fitTrackhearrate = new File("/home/rainer/Downloads/Garmin/coros_heartrate.fit");
+        File fitTrackhearrate = new File("/home/rainer/Downloads/Garmin/Heartrate/coros-466210103410851844.fit");
 
        try {
            System.out.println("Start loading FIT");
            long start = System.currentTimeMillis();
            GPXWorker.ConversionOutput conversionOutput = GPXWorker.loadFitTracks(fitTrackhearrate);
-           List<Track> trackList = conversionOutput.trackList;
+           Track track = conversionOutput.trackList.get(0);
 
            System.out.println("Type/Subtype: " + conversionOutput.sportString + " "+conversionOutput.subsportString);
 
 
            //Track track = GPXWorker.loadFitTracks(fitTrack).get(0);
            System.out.println("Load time: "+(System.currentTimeMillis()-start)+" ms");
-           GPXWorker.TrackSummary trackSummary = GPXWorker.getTrackSummary(trackList.get(0));
+           GPXWorker.TrackSummary trackSummary = GPXWorker.getTrackSummary(track);
            System.out.println(trackSummary.toString());
-           System.out.println(trackList.get(0).getSegments().get(0).getPoints().get(0).getTime().get());
+           System.out.println(track.getSegments().get(0).getPoints().get(0).getTime().get());
 
+           System.out.println("--------_");
 
+           List<TrackSegment> reducedSegmentList = new ArrayList<>(GPXWorker.reduceTrackSegments(track, 2).getSegments());
+
+           GPXWorker.TrackSummary trackSummary2 = GPXWorker.getTrackSummary(reducedSegmentList);
+           System.out.println(trackSummary2.toString());
+           System.out.println(reducedSegmentList.get(0).getPoints().get(0).getTime().get());
 
 
 
