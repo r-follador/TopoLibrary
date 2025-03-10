@@ -3,6 +3,7 @@ package com.sunlocator.topolibrary.MapTile;
 import com.sunlocator.topolibrary.*;
 
 import java.io.IOException;
+import java.util.HashMap;
 
 public class GLTFWorker {
     public static class GLTFBuilder {
@@ -19,6 +20,9 @@ public class GLTFWorker {
         private boolean zUp = true;
 
         private boolean enclosement = false;
+
+        private int heightOffset = -1;
+
         public GLTFBuilder(LatLonBoundingBox boundingBox, HGTFileLoader hgtFileLoader) {
             this.boundingBox = boundingBox;
             this.zoomLevel = calculateZoomlevel(boundingBox);
@@ -34,6 +38,18 @@ public class GLTFWorker {
             this.zoomLevel = zoomlevel;
             return this;
         }
+
+        /**
+         * Forces the distance of the lowest point in the GLTF to the zero plane
+         * No or negative settings use true altitude above sea level
+         * @param heightOffset
+         * @return
+         */
+        public GLTFBuilder setHeightOffset(int heightOffset) {
+            this.heightOffset = heightOffset;
+            return this;
+        }
+
 
         public GLTFBuilder exaggerateHeight(float scaleFactorHeight) {
             this.scaleFactorHeight = scaleFactorHeight;
@@ -82,11 +98,15 @@ public class GLTFWorker {
         return zoom;
     }
 
+    private record MeshHolder(short[][] data, int cellsLon_X, int cellsLat_Y, double cellWidth_LatMeters, double cellWidth_LonMeters, boolean enclosement, float offset_x, float offset_y, float scaleFactor, float scaleFactorHeight, GLTFDatafile.UvTexture UVTexture, GLTFDatafile.UvTexture enclosementTexture, boolean isZUp, HashMap<String, String> metadata) {};
+
     private static GLTFDatafile buildGLTF(GLTFBuilder builder) throws IOException {
 
         MapTile[][] mtiles = MapTileWorker.getTilesFromBoundingBox(builder.boundingBox, builder.zoomLevel);
         int tileWidth = mtiles.length;
         int tileHeight = mtiles[0].length;
+
+        MeshHolder[][] holder = new MeshHolder[tileWidth][tileHeight];
 
         LatLon center = builder.boundingBox.getCenter();
 
@@ -135,25 +155,64 @@ public class GLTFWorker {
 
                 boolean enclosementNeeded =  builder.enclosement && (x==0 || x == tileWidth-1 || y==0 || y==tileHeight-1);
 
-                GLTFDatafile.GLTFMesh mesh = gltfFile.addGLTFMesh(data, lonCellNumber, latCellNumber, cellWidth_LatMeters, cellWidth_LonMeters, enclosementNeeded, offset_x, offset_y, builder.scaleFactor, builder.scaleFactorHeight, UVTexture, enclosementTexture, builder.zUp);
 
-                mesh.metadata.put("Tile_Z", String.valueOf(mtiles[x][y].zoom));
-                mesh.metadata.put("Tile_X", String.valueOf(mtiles[x][y].x));
-                mesh.metadata.put("Tile_Y", String.valueOf(mtiles[x][y].y));
-                mesh.metadata.put("NBound", String.valueOf(tileBbox.getN_Bound()));
-                mesh.metadata.put("SBound", String.valueOf(tileBbox.getS_Bound()));
-                mesh.metadata.put("WBound", String.valueOf(tileBbox.getW_Bound()));
-                mesh.metadata.put("EBound", String.valueOf(tileBbox.getE_Bound()));
-                mesh.metadata.put("Distance1DegreeLatitude", String.valueOf(HGTWorker.degrees2distance_latitude(1d)));
-                mesh.metadata.put("Distance1DegreeLongitude", String.valueOf(HGTWorker.degrees2distance_longitude(1d, center.getLatitude())));
-                mesh.metadata.put("cellWidth_LatMeters", String.valueOf(cellWidth_LatMeters));
-                mesh.metadata.put("cellWidth_LonMeters", String.valueOf(cellWidth_LonMeters));
+                HashMap<String, String> metadata = new HashMap<>();
+
+
+                metadata.put("Tile_Z", String.valueOf(mtiles[x][y].zoom));
+                metadata.put("Tile_X", String.valueOf(mtiles[x][y].x));
+                metadata.put("Tile_Y", String.valueOf(mtiles[x][y].y));
+                metadata.put("NBound", String.valueOf(tileBbox.getN_Bound()));
+                metadata.put("SBound", String.valueOf(tileBbox.getS_Bound()));
+                metadata.put("WBound", String.valueOf(tileBbox.getW_Bound()));
+                metadata.put("EBound", String.valueOf(tileBbox.getE_Bound()));
+                metadata.put("Distance1DegreeLatitude", String.valueOf(HGTWorker.degrees2distance_latitude(1d)));
+                metadata.put("Distance1DegreeLongitude", String.valueOf(HGTWorker.degrees2distance_longitude(1d, center.getLatitude())));
+                metadata.put("cellWidth_LatMeters", String.valueOf(cellWidth_LatMeters));
+                metadata.put("cellWidth_LonMeters", String.valueOf(cellWidth_LonMeters));
                 /**System.out.printf("Max x / y: %f %f \n", mesh.getMax_x(), mesh.getMax_y());
                  System.out.printf("Min x / y: %f %f \n", mesh.getMin_x(), mesh.getMin_y());
                  System.out.printf("Cell width long / lat: %f %f\n", cellWidth_LonMeters, cellWidth_LatMeters);**/
+
+                holder[x][y] = new MeshHolder(data, lonCellNumber, latCellNumber, cellWidth_LatMeters, cellWidth_LonMeters, enclosementNeeded, offset_x, offset_y, builder.scaleFactor, builder.scaleFactorHeight, UVTexture, enclosementTexture, builder.zUp, metadata);
             }
         }
 
+        if (builder.heightOffset > 0) {
+            int minHeight = Short.MAX_VALUE;
+            for (int x=0; x<tileWidth; x++) {
+                for (int y = 0; y < tileHeight; y++) {
+                    MeshHolder hld = holder[x][y];
+                    for (int j=0; j<hld.data.length; j++) {
+                        for (int i=0; i<hld.data[j].length; i++) {
+                            if (minHeight > hld.data[j][i])
+                                minHeight = hld.data[j][i];
+                        }
+                    }
+                }
+            }
+
+            int offset = minHeight - builder.heightOffset;
+
+            for (int x=0; x<tileWidth; x++) {
+                for (int y = 0; y < tileHeight; y++) {
+                    MeshHolder hld = holder[x][y];
+                    for (int j=0; j<hld.data.length; j++) {
+                        for (int i=0; i<hld.data[j].length; i++) {
+                                hld.data[j][i] = (short)(hld.data[j][i] - offset);
+                        }
+                    }
+                }
+            }
+        }
+
+        for (int x=0; x<tileWidth; x++) {
+            for (int y = 0; y < tileHeight; y++) {
+                MeshHolder hld = holder[x][y];
+                GLTFDatafile.GLTFMesh mesh = gltfFile.addGLTFMesh(hld.data, hld.cellsLon_X, hld.cellsLat_Y, hld.cellWidth_LatMeters, hld.cellWidth_LonMeters, hld.enclosement, hld.offset_x, hld.offset_y, builder.scaleFactor, builder.scaleFactorHeight, hld.UVTexture, hld.enclosementTexture, builder.zUp);
+                mesh.metadata = hld.metadata;
+            }
+        }
         return gltfFile;
     }
 }
