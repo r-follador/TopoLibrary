@@ -49,6 +49,7 @@ class Converter {
     List<Track> activityList = new ArrayList<>();
     String sportType = "";
     String subsportType = "";
+    String deviceName = "";
     private long TimeStamp;
     private final SimpleDateFormat DateFormatCSV = ISODateFormatCSV;
     private BufferedInputStream InputStream;
@@ -64,6 +65,7 @@ class Converter {
         GPXWorker.ConversionOutput output = new GPXWorker.ConversionOutput(converter.getListTrack());
         output.sportString = converter.sportType;
         output.subsportString = converter.subsportType;
+        output.device = converter.getDeviceName();
         return output;
     }
 
@@ -109,6 +111,10 @@ class Converter {
 
     private List<Track> getListTrack() {
         return activityList;
+    }
+
+    private String getDeviceName() {
+        return deviceName;
     }
 
     void setFITInputStream(BufferedInputStream inputStream) {
@@ -393,31 +399,38 @@ class Converter {
 
         BufferedMesgBroadcaster mesgBroadcaster = new BufferedMesgBroadcaster(decode);
         FileIdMesgListener fileIdMesgListener = mesg -> {
-            String _Product = "";
-            String _Manufacturer;
-
-            int __product = 0;
-            int __manufacturer = 0;
-
+            String manufacturerName = "";
             if (mesg.getManufacturer() != null) {
-                __manufacturer = mesg.getManufacturer();
-                _Manufacturer = " (" + Manufacturer.getStringFromValue(mesg.getManufacturer()) + ")";
-
-                if (mesg.getProduct() != null) {
-
-                    __product = mesg.getProduct();
-
-                    if (__manufacturer == Manufacturer.GARMIN) {
-                        _Product = GarminProduct.getStringFromValue(mesg.getGarminProduct()) + _Manufacturer;
-                    } else if (mesg.getManufacturer() == Manufacturer.FAVERO_ELECTRONICS) {
-                        _Product = FaveroProduct.getStringFromValue(mesg.getFaveroProduct()) + _Manufacturer;
-                    } else if (mesg.getManufacturer() == Manufacturer.BRYTON) {
-                        _Product = _Manufacturer;
-                    } else {
-                        _Product = "Device ID: " + mesg.getProduct() + _Manufacturer;
-                    }
+                String manufacturerValue = Manufacturer.getStringFromValue(mesg.getManufacturer());
+                if (manufacturerValue != null) {
+                    manufacturerName = manufacturerValue;
                 }
             }
+
+            String resolvedDevice = "";
+            if (mesg.getManufacturer() != null && mesg.getProduct() != null) {
+                if (mesg.getManufacturer() == Manufacturer.GARMIN) {
+                    resolvedDevice = GarminProduct.getStringFromValue(mesg.getProduct());
+                } else if (mesg.getManufacturer() == Manufacturer.FAVERO_ELECTRONICS) {
+                    resolvedDevice = FaveroProduct.getStringFromValue(mesg.getFaveroProduct());
+                } else {
+                    resolvedDevice = manufacturerName;
+                }
+            }
+
+            if ((resolvedDevice == null || resolvedDevice.isEmpty()) && !manufacturerName.isEmpty()) {
+                resolvedDevice = manufacturerName;
+            }
+
+            if ((resolvedDevice == null || resolvedDevice.isEmpty()) && mesg.getSerialNumber() != null) {
+                resolvedDevice = "Serial " + mesg.getSerialNumber();
+            }
+
+            if (resolvedDevice != null && !resolvedDevice.isEmpty() && manufacturerName != null && !manufacturerName.isEmpty() && !resolvedDevice.contains(manufacturerName)) {
+                resolvedDevice = resolvedDevice + " (" + manufacturerName + ")";
+            }
+
+            deviceName = resolvedDevice == null ? "" : resolvedDevice;
 
             SimpleDateFormat hashDate = new SimpleDateFormat("yyyyMMddHHmmss");
             hashDate.setTimeZone(TimeZone.getTimeZone("UTC"));
@@ -518,7 +531,7 @@ class Converter {
         HrMesgListener hrListener = mesg -> {
         };
 
-        //mesgBroadcaster.addListener(fileIdMesgListener);
+        mesgBroadcaster.addListener(fileIdMesgListener);
         mesgBroadcaster.addListener(mesgListener);
 
         //mesgBroadcaster.addListener(hrListener);

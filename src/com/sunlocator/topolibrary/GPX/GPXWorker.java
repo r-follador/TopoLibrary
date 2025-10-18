@@ -68,6 +68,7 @@ public class GPXWorker {
         public List<Track> trackList = null;
         public String sportString = "";
         public String subsportString = "";
+        public String device = "";
     }
 
 

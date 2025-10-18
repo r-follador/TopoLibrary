@@ -25,7 +25,7 @@ public class GLTFmain {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        LatLonBoundingBox boundingBox = new LatLonBoundingBox(new LatLon(-16.5004, -151.7415), 10000);
+        LatLonBoundingBox boundingBox = new LatLonBoundingBox(new LatLon(46.863760, 9.590417), 10000);
 
         try {
             String directory = "/home/rainer/Software_Dev/HGT/";

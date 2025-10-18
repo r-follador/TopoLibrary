@@ -27,7 +27,8 @@ public class FITmain {
      */
     public static void main(String[] args) {
 
-        File fitTrackhearrate = new File("/home/rainer/Downloads/Garmin/Heartrate/coros-466210103410851844.fit");
+        //File fitTrackhearrate = new File("/home/rainer/Downloads/Garmin/Heartrate/coros-466210103410851844.fit");
+        File fitTrackhearrate = new File("/home/rainer/Downloads/Garmin/Garmin Connect/r.follador@gmail.com_152069245706.fit");
 
        try {
            System.out.println("Start loading FIT");
@@ -36,6 +37,7 @@ public class FITmain {
            Track track = conversionOutput.trackList.get(0);
 
            System.out.println("Type/Subtype: " + conversionOutput.sportString + " "+conversionOutput.subsportString);
+           System.out.println("Device: " + conversionOutput.device);
 
 
            //Track track = GPXWorker.loadFitTracks(fitTrack).get(0);

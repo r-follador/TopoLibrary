@@ -2,8 +2,8 @@ plugins {
     id 'java-library'
 }
 
-group 'com.sunlocator'
-version '2.3-SNAPSHOT'
+group = 'com.sunlocator'
+version = '2.4-SNAPSHOT'
 
 repositories {
     mavenCentral()
@@ -33,4 +33,9 @@ jar {
     //from {
     //    configurations.extraLibs.collect { it.isDirectory() ? it : zipTree(it) }
     //}
+}
+
+tasks.withType(JavaCompile).configureEach {
+    // enforce stable bytecode level regardless of the JDK used to run Gradle
+    options.release = 17
 }
