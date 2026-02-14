@@ -24,10 +24,24 @@ public class GPXWorker {
 
     //Based on https://github.com/jenetics/jpx
 
+    /**
+     * Parses GPX content and returns all tracks using lenient JPX parsing mode.
+     *
+     * @param inputStream GPX input stream
+     * @return conversion output containing parsed tracks
+     * @throws IOException if parsing fails
+     */
     public static ConversionOutput loadGPXTracks(InputStream inputStream) throws IOException {
         return new ConversionOutput(GPX.Reader.of(GPX.Reader.Mode.LENIENT).read(inputStream).getTracks());
     }
 
+    /**
+     * Parses FIT content and converts it to GPX-style tracks.
+     *
+     * @param inputStream FIT input stream
+     * @return conversion output containing parsed tracks and detected device/sport metadata
+     * @throws IOException if parsing fails
+     */
     public static ConversionOutput loadFitTracks(InputStream inputStream) throws IOException {
         return Converter.loadFitTracks(new BufferedInputStream(inputStream));
     }
@@ -152,10 +166,12 @@ public class GPXWorker {
     }
 
     /**
-     * Downsample Track using Ramer–Douglas–Peucker algorithm
-     * @param original
-     * @param epsilon in meters
-     * @return
+     * Downsamples a track with the Ramer-Douglas-Peucker algorithm.
+     *
+     * @param original track to simplify
+     * @param epsilon simplification tolerance in meters
+     * @return simplified track preserving segment order and segment boundaries
+     * @throws IllegalArgumentException if no segment contains enough points after filtering
      */
     public static Track reduceTrackSegments(Track original, double epsilon) {
         Track.Builder trackBuilder = Track.builder().name(original.getName().orElse("")).desc(original.getDescription().orElse(""));
@@ -260,9 +276,10 @@ public class GPXWorker {
         return Math.hypot(ax, ay);
     }
     /**
-     * Returns Encoded Polyline Algorithm Format (see https://developers.google.com/maps/documentation/utilities/polylinealgorithm)
-     * @param trackSegment
-     * @return Encoded Polyline Algorithm Format
+     * Encodes one segment with Google's encoded polyline algorithm.
+     *
+     * @param trackSegment source segment
+     * @return encoded polyline string
      */
     public static String encode2EPA(TrackSegment trackSegment) {
         StringBuilder encodedPolyline = new StringBuilder();
@@ -303,6 +320,14 @@ public class GPXWorker {
         return encodedNumber.toString();
     }
 
+    /**
+     * Computes aggregate track statistics for one or more segments.
+     *
+     * Input points are expected to have elevation and timestamp fields populated.
+     *
+     * @param segments source segments
+     * @return calculated summary
+     */
     public static TrackSummary getTrackSummary(List<TrackSegment> segments) {
         int up = 0;
         int down = 0;
@@ -591,13 +616,15 @@ public class GPXWorker {
     final static short nonInit = (short)-2222;
 
     /**
-     * Returns the elevation data based on the 1DEM HGT file for every point in a Track.
-     * The arraylist contains a short[] array for every tracksegment.
-     * @param segments
-     * @param hgtFileLoader_1DEM
-     * @param hgtFileLoader_3DEM
-     * @return
-     * @throws IOException
+     * Resolves DEM elevations for each point in each segment.
+     *
+     * The method first tries 1DEM, then falls back to 3DEM when the corresponding 1DEM file is missing.
+     *
+     * @param segments segments to enrich
+     * @param hgtFileLoader_1DEM 1DEM source
+     * @param hgtFileLoader_3DEM fallback 3DEM source
+     * @return per-segment elevation arrays matching segment point counts
+     * @throws IOException if required DEM tiles cannot be loaded
      */
     public static ArrayList<short[]> getElevationDataFromHGT(List<TrackSegment> segments, HGTFileLoader hgtFileLoader_1DEM, HGTFileLoader hgtFileLoader_3DEM) throws IOException {
         String hgtDatafile_3DEM_name = "";

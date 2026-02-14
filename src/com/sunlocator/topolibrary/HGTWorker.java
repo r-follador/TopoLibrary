@@ -13,6 +13,10 @@ import java.net.URL;
 import java.nio.ByteBuffer;
 
 /**
+ * Utility entry point for HGT terrain loading, spatial conversions, and GLTF-oriented terrain preparation.
+ *
+ * The class operates on SRTM-like HGT naming and grid conventions and exposes helpers in both
+ * metric units (meters) and geographic units (degrees).
  *
  * @author rainer
  */
@@ -155,9 +159,12 @@ public class HGTWorker {
     }
 
     /**
-     * Get the name of the DEM3 file containing the position
-     * @param position
-     * @return
+     * Resolves the DEM tile basename containing a position.
+     *
+     * Output format is {@code [N|S]LL[E|W]LLL}, for example {@code N46E009}.
+     *
+     * @param position query position in latitude/longitude degrees
+     * @return DEM3 tile basename without file extension
      */
     public static String getFileName_3DEM(LatLon position) {
         int lat_floored = (int) Math.floor(position.Lat);
@@ -169,9 +176,10 @@ public class HGTWorker {
     }
 
     /**
-     * Get the name of the DEM1 file containing the position
-     * @param position
-     * @return
+     * Resolves the DEM1 tile basename containing a position.
+     *
+     * @param position query position in latitude/longitude degrees
+     * @return DEM1 tile basename without file extension
      */
     public static String getFileName_1DEM(LatLon position) {
         return getFileName_3DEM(position);
@@ -200,15 +208,19 @@ public class HGTWorker {
     }
 
     /**
-     * Load data from HGT files (3DEM)
-     * @param topleft Northwestern most corner
-     * @param cells_x_lon number of longitudinal cells to read
-     * @param cells_y_lat number of latitudinal cells to read
-     * @param xcell_offset x offset (lon)
-     * @param ycell_offset y offset (lat)
-     * @param hgtFileLoader_3DEM
-     * @return array of shorts
-     * @throws IOException
+     * Loads a rectangular 3DEM elevation window, stitching across file boundaries when needed.
+     *
+     * The returned array layout is {@code data[x][y]} where {@code x} is longitude index
+     * and {@code y} is latitude index.
+     *
+     * @param topleft north-west corner of the requested window
+     * @param cells_x_lon number of longitudinal cells to load
+     * @param cells_y_lat number of latitudinal cells to load
+     * @param xcell_offset longitudinal offset in cells relative to {@code topleft}
+     * @param ycell_offset latitudinal offset in cells relative to {@code topleft}
+     * @param hgtFileLoader_3DEM data source implementation
+     * @return stitched elevation grid in meters
+     * @throws IOException if any required source tile cannot be loaded
      */
     public static short[][] load_3DEM(LatLon topleft, int cells_x_lon, int cells_y_lat, int xcell_offset, int ycell_offset, HGTFileLoader hgtFileLoader_3DEM) throws  IOException {
         short[][] data = new short[cells_x_lon][cells_y_lat];
@@ -269,15 +281,16 @@ public class HGTWorker {
     }
 
     /**
-     * Load data from HGT files (1DEM)
-     * @param topleft Northwestern most corner
-     * @param cells_x_lon number of longitudinal cells to read
-     * @param cells_y_lat number of latitudinal cells to read
-     * @param xcell_offset x offset (lon)
-     * @param ycell_offset y offset (lat)
-     * @param hgtFileLoader_1DEM
-     * @return array of shorts
-     * @throws IOException
+     * Loads a rectangular 1DEM elevation window, stitching across file boundaries when needed.
+     *
+     * @param topleft north-west corner of the requested window
+     * @param cells_x_lon number of longitudinal cells to load
+     * @param cells_y_lat number of latitudinal cells to load
+     * @param xcell_offset longitudinal offset in cells relative to {@code topleft}
+     * @param ycell_offset latitudinal offset in cells relative to {@code topleft}
+     * @param hgtFileLoader_1DEM data source implementation
+     * @return stitched elevation grid in meters
+     * @throws IOException if any required source tile cannot be loaded
      */
     public static short[][] load_1DEM(LatLon topleft, int cells_x_lon, int cells_y_lat, int xcell_offset, int ycell_offset, HGTFileLoader hgtFileLoader_1DEM) throws  IOException {
         short[][] data = new short[cells_x_lon][cells_y_lat];
@@ -823,6 +836,15 @@ public class HGTWorker {
         return gltfFile;
     }
 
+    /**
+     * Writes one square elevation grid to a binary HGT file in big-endian signed-short format.
+     *
+     * @param file output file path
+     * @param data elevation grid, indexed as {@code data[x][y]}
+     * @param cellsPerRow expected width and height
+     * @return always {@code true} when writing completed
+     * @throws IOException if the file cannot be written
+     */
     public static boolean writeHGT(File file, short[][] data, int cellsPerRow) throws IOException {
         OutputStream os = new FileOutputStream(file);
         ByteBuffer bb = ByteBuffer.allocate((cellsPerRow)*2);

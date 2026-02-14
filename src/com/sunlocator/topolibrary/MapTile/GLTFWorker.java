@@ -6,6 +6,16 @@ import java.io.IOException;
 import java.util.HashMap;
 
 public class GLTFWorker {
+    /**
+     * Fluent builder for generating tiled terrain GLTF output from DEM data.
+     *
+     * Defaults:
+     * - zoom level auto-selected from bounding box
+     * - scale factor {@code 1.0} (meters)
+     * - height exaggeration {@code 1.0}
+     * - Z-up orientation
+     * - no texture URL
+     */
     public static class GLTFBuilder {
 
         private LatLonBoundingBox boundingBox;
@@ -23,17 +33,35 @@ public class GLTFWorker {
 
         private int heightOffset = -1;
 
+        /**
+         * Creates a new builder for one geographic area.
+         *
+         * @param boundingBox requested target area
+         * @param hgtFileLoader DEM data source
+         */
         public GLTFBuilder(LatLonBoundingBox boundingBox, HGTFileLoader hgtFileLoader) {
             this.boundingBox = boundingBox;
             this.zoomLevel = calculateZoomlevel(boundingBox);
             this.hgtFileLoader = hgtFileLoader;
         }
 
+        /**
+         * Enables side-wall enclosure meshes for border tiles.
+         *
+         * @param enclosement true to add enclosure meshes
+         * @return this builder
+         */
         public GLTFBuilder setEnclosement(boolean enclosement) {
             this.enclosement = enclosement;
             return this;
         }
 
+        /**
+         * Overrides the auto-selected map tile zoom level.
+         *
+         * @param zoomlevel map tile zoom level
+         * @return this builder
+         */
         public GLTFBuilder setZoomlevel(int zoomlevel) {
             this.zoomLevel = zoomlevel;
             return this;
@@ -51,6 +79,12 @@ public class GLTFWorker {
         }
 
 
+        /**
+         * Applies vertical exaggeration to terrain elevation values.
+         *
+         * @param scaleFactorHeight vertical multiplier
+         * @return this builder
+         */
         public GLTFBuilder exaggerateHeight(float scaleFactorHeight) {
             this.scaleFactorHeight = scaleFactorHeight;
             return this;
@@ -71,16 +105,34 @@ public class GLTFWorker {
          * @param scaleFactor
          * @return
          */
+        /**
+         * Sets XY and Z uniform scaling for generated mesh coordinates.
+         *
+         * @param scaleFactor coordinate multiplier ({@code 1.0} means meters)
+         * @return this builder
+         */
         public GLTFBuilder setScaleFactor(float scaleFactor) {
             this.scaleFactor = scaleFactor;
             return this;
         }
 
+        /**
+         * Selects GLTF axis convention.
+         *
+         * @param zUp true for Z-up, false for Y-up
+         * @return this builder
+         */
         public GLTFBuilder isZUp(boolean zUp) {
             this.zUp = zUp;
             return this;
         }
 
+        /**
+         * Builds the GLTF datafile from current builder settings.
+         *
+         * @return generated GLTF data container
+         * @throws IOException if DEM data loading fails
+         */
         public GLTFDatafile build() throws IOException {
             return buildGLTF(this);
         }

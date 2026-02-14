@@ -6,6 +6,11 @@ import com.sunlocator.topolibrary.LatLonBoundingBox;
 
 import java.util.Objects;
 
+/**
+ * Web-mercator tile utilities and conversions between tile, pixel, and lat/lon coordinates.
+ *
+ * This class assumes a 256x256 pixel tile size.
+ */
 public class MapTile {
     public int zoom;
     public int x;
@@ -51,6 +56,11 @@ public class MapTile {
     static final double d2r = Math.PI / 180;
     static final double r2d = 180 / Math.PI;
 
+    /**
+     * Returns the geographic bounds of this tile.
+     *
+     * @return tile bounding box in latitude/longitude degrees
+     */
     public LatLonBoundingBox getBoundingBox() {
         double e = tile2lon(x + 1, zoom);
         double w = tile2lon(x, zoom);
@@ -201,12 +211,13 @@ public class MapTile {
     }
 
     /**
-     * Converts pixel position at a specified level of detail into latitude/longitude WGS-84 coordinates (in degrees)
-     * This assumes a tile is 256x256px
+     * Converts world pixel coordinates to WGS-84 latitude/longitude.
      *
-     * @param pixel in world coordinates
-     * @param zoom  the zoom level
-     * @return latitude/longitude
+     * Note: the implementation currently logs a warning and should be validated for high-precision use cases.
+     *
+     * @param pixel world pixel coordinates
+     * @param zoom zoom level
+     * @return latitude/longitude coordinates
      */
     public static LatLon convertPixelXYtoLatLong(XY pixel, int zoom) {
         System.err.println("warning: there's likely an error");

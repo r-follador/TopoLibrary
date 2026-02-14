@@ -6,6 +6,9 @@
 package com.sunlocator.topolibrary;
 
 /**
+ * Immutable-like geographic bounding box expressed in latitude/longitude degrees.
+ *
+ * Bounds are stored as north/south/west/east and precomputed in both degrees and meters.
  *
  * @author rainer
  */
@@ -43,6 +46,12 @@ public class LatLonBoundingBox {
         setWidths();
     }
 
+    /**
+     * Returns a new bounding box expanded by the given padding distance on all four sides.
+     *
+     * @param meters padding in meters
+     * @return padded bounding box
+     */
     public LatLonBoundingBox addPadding(int meters) {
         double newNbound = N_Bound + HGTWorker.distance2degrees_latitude(meters);
         double newSbound = S_Bound - HGTWorker.distance2degrees_latitude(meters);
@@ -137,6 +146,12 @@ public class LatLonBoundingBox {
         return new LatLon(getS_Bound(), getE_Bound());
     }
 
+    /**
+     * Tests whether a coordinate lies within this bounding box (inclusive boundaries).
+     *
+     * @param position position to check
+     * @return true if position is inside or on the boundary
+     */
     public boolean isPositionWithinBbox(LatLon position) {
         return position.getLatitude() <= getN_Bound() && position.getLatitude() >= getS_Bound() && position.getLongitude() >= getW_Bound()
                 && position.getLongitude() <= getE_Bound();
