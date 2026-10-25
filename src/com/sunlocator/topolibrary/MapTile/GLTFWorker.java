@@ -10,6 +10,7 @@ public class GLTFWorker {
      * Fluent builder for generating tiled terrain GLTF output from DEM data.
      *
      * Defaults:
+     * - 3-arcsecond elevation data ({@link HGTDatafile.HGT_Type#DEM3})
      * - zoom level auto-selected from bounding box
      * - scale factor {@code 1.0} (meters)
      * - height exaggeration {@code 1.0}
@@ -21,6 +22,7 @@ public class GLTFWorker {
         private LatLonBoundingBox boundingBox;
         private int zoomLevel;
         private HGTFileLoader hgtFileLoader;
+        private HGTDatafile.HGT_Type demType = HGTDatafile.HGT_Type.DEM3;
         private String textureUrl = null;
 
         private float scaleFactor = 1f;
@@ -43,6 +45,23 @@ public class GLTFWorker {
             this.boundingBox = boundingBox;
             this.zoomLevel = calculateZoomlevel(boundingBox);
             this.hgtFileLoader = hgtFileLoader;
+        }
+
+        /**
+         * Selects the resolution of the elevation files supplied by the loader.
+         * Defaults to DEM3 (1201 samples per row); DEM1 uses 3601 samples per row.
+         * The loader must point to files matching the selected resolution.
+         *
+         * @param demType DEM1 or DEM3
+         * @return this builder
+         * @throws IllegalArgumentException if demType is null or unsupported
+         */
+        public GLTFBuilder setDemType(HGTDatafile.HGT_Type demType) {
+            if (demType != HGTDatafile.HGT_Type.DEM1 && demType != HGTDatafile.HGT_Type.DEM3) {
+                throw new IllegalArgumentException("GLTF terrain requires DEM1 or DEM3 elevation data");
+            }
+            this.demType = demType;
+            return this;
         }
 
         /**
@@ -167,28 +186,27 @@ public class GLTFWorker {
         GLTFDatafile.UvTexture enclosementTexture = new GLTFDatafile.UvTexture(false, false);
         enclosementTexture.metallicFactor=1;
 
+        final int cellsPerRow = builder.demType == HGTDatafile.HGT_Type.DEM1
+                ? HGTDatafile.DEM1_cells_per_row : HGTDatafile.DEM3_cells_per_row;
+
         //For each tile
         for (int x=0; x<tileWidth; x++) {
             for (int y=0; y<tileHeight; y++) {
 
                 LatLonBoundingBox tileBbox = mtiles[x][y].getBoundingBox();
 
-                int start_x_topleft = (int)((tileBbox.getW_Bound()-Math.floor(tileBbox.getW_Bound()))*(double) HGTDatafile.DEM3_cells_per_row);
-                int start_x_bottomright = (int)((tileBbox.getE_Bound()-Math.floor(tileBbox.getE_Bound()))*(double) HGTDatafile.DEM3_cells_per_row);
-                int lonCellNumber;
-                if (Math.floor(tileBbox.getW_Bound()) == Math.floor(tileBbox.getE_Bound()))
-                    lonCellNumber = start_x_bottomright - start_x_topleft + 1;
-                else //spanning two DEM files
-                    lonCellNumber = (start_x_bottomright)+(HGTDatafile.DEM3_cells_per_row-start_x_topleft)+(((int)Math.floor(tileBbox.getE_Bound()-(int)Math.floor(tileBbox.getW_Bound()))-1)*HGTDatafile.DEM1_cells_per_row);
+                int start_x_topleft = (int)((tileBbox.getW_Bound()-Math.floor(tileBbox.getW_Bound())) * cellsPerRow);
+                int start_x_bottomright = (int)((tileBbox.getE_Bound()-Math.floor(tileBbox.getE_Bound())) * cellsPerRow);
+                int longitudeFilesCrossed = (int)(Math.floor(tileBbox.getE_Bound()) - Math.floor(tileBbox.getW_Bound()));
+                // HGTWorker skips the duplicated first column/row in each subsequent HGT file.
+                int lonCellNumber = start_x_bottomright - start_x_topleft + 1
+                        + longitudeFilesCrossed * (cellsPerRow - 1);
 
-                int start_y_topleft = (int)((Math.ceil(tileBbox.getN_Bound())-tileBbox.getN_Bound())*(double) HGTDatafile.DEM3_cells_per_row);
-                int start_y_bottomright = (int)((Math.ceil(tileBbox.getS_Bound())-tileBbox.getS_Bound())*(double) HGTDatafile.DEM3_cells_per_row);
-                int latCellNumber;
-
-                if (Math.ceil(tileBbox.getN_Bound()) == Math.ceil(tileBbox.getS_Bound()))
-                    latCellNumber = start_y_bottomright - start_y_topleft + 1;
-                else //spanning two DEM files
-                    latCellNumber = (start_y_bottomright)+(HGTDatafile.DEM3_cells_per_row-start_y_topleft)+((int)Math.ceil(tileBbox.getN_Bound()-(int)Math.ceil(tileBbox.getS_Bound()))-1)*HGTDatafile.DEM1_cells_per_row;
+                int start_y_topleft = (int)((Math.ceil(tileBbox.getN_Bound())-tileBbox.getN_Bound()) * cellsPerRow);
+                int start_y_bottomright = (int)((Math.ceil(tileBbox.getS_Bound())-tileBbox.getS_Bound()) * cellsPerRow);
+                int latitudeFilesCrossed = (int)(Math.ceil(tileBbox.getN_Bound()) - Math.ceil(tileBbox.getS_Bound()));
+                int latCellNumber = start_y_bottomright - start_y_topleft + 1
+                        + latitudeFilesCrossed * (cellsPerRow - 1);
 
                 double cellWidth_LatMeters = HGTWorker.degrees2distance_latitude(tileBbox.getWidthLatDegree())/(double)(latCellNumber-1);
                 double cellWidth_LonMeters = HGTWorker.degrees2distance_longitude(tileBbox.getWidthLonDegree(), center.getLatitude())/(double)(lonCellNumber-1);
@@ -196,7 +214,9 @@ public class GLTFWorker {
                 float offset_x = (float)HGTWorker.degrees2distance_longitude(tileBbox.getTopLeft().getLongitude()-center.getLongitude(), center.getLatitude());
                 float offset_y = (float)HGTWorker.degrees2distance_latitude(tileBbox.getTopLeft().getLatitude()-center.getLatitude());
 
-                short[][] data = HGTWorker.load_3DEM(tileBbox.getTopLeft(), lonCellNumber, latCellNumber, 0,0, builder.hgtFileLoader);
+                short[][] data = builder.demType == HGTDatafile.HGT_Type.DEM1
+                        ? HGTWorker.load_1DEM(tileBbox.getTopLeft(), lonCellNumber, latCellNumber, builder.hgtFileLoader)
+                        : HGTWorker.load_3DEM(tileBbox.getTopLeft(), lonCellNumber, latCellNumber, builder.hgtFileLoader);
 
                 GLTFDatafile.UvTexture UVTexture;
                 if (builder.textureUrl != null && !builder.textureUrl.isEmpty()) {
